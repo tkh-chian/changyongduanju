@@ -483,27 +483,11 @@ class ThaiPhraseLearning {
         }
         
         // 安卓设备需要特殊的语音激活
-        if (isAndroid) {
-            console.log('📱 检测到安卓设备，执行特殊初始化');
-            
-            // 安卓设备先播放一个短音来激活语音引擎
-            setTimeout(() => {
-                const testUtterance = new SpeechSynthesisUtterance('hi');
-                testUtterance.volume = 0.1;
-                testUtterance.rate = 2;
-                testUtterance.onend = () => {
-                    console.log('✅ 安卓语音引擎已激活');
-                    this.loadVoices();
-                };
-                testUtterance.onerror = () => {
-                    console.log('⚠️ 安卓语音激活失败，继续尝试');
-                    this.loadVoices();
-                };
-                this.speechSynthesis.speak(testUtterance);
-            }, 200);
-        } else {
-            this.testSpeech();
-        }
+        // 简化的语音激活
+        this.testSpeech();
+        
+        // 延迟加载语音列表
+        setTimeout(() => this.loadVoices(), 100);
     }
     
     testSpeech() {
@@ -519,10 +503,21 @@ class ThaiPhraseLearning {
         console.log('所有可用语音:', this.voices.map(v => `${v.name} (${v.lang})`));
         
         if (isAndroid) {
-            // 安卓设备：优先使用系统默认语音，不强制指定特定语音
-            console.log('📱 安卓设备：使用系统默认语音');
-            this.thaiVoice = null;  // 让系统自动选择
-            this.chineseVoice = null;  // 让系统自动选择
+            // 安卓设备：寻找可用的泰语和中文语音
+            console.log('📱 安卓设备：搜索可用语音');
+            
+            // 寻找泰语语音
+            this.thaiVoice = this.voices.find(voice => 
+                voice.lang.toLowerCase().includes('th')
+            );
+            
+            // 寻找中文语音  
+            this.chineseVoice = this.voices.find(voice => 
+                voice.lang.toLowerCase().includes('zh')
+            );
+            
+            console.log('找到的泰语语音:', this.thaiVoice?.name || '无');
+            console.log('找到的中文语音:', this.chineseVoice?.name || '无');
         } else {
             // 桌面设备：使用完整的语音选择逻辑
             this.thaiVoice = this.voices.find(voice => 
@@ -646,15 +641,15 @@ class ThaiPhraseLearning {
                 
                 // 安卓设备特殊处理
                 if (isAndroid) {
-                    // 安卓设备不设置voice，让系统自动选择
+                    // 安卓设备不设置特定voice，让系统自动选择
                     this.currentUtterance.voice = null;
-                    // 安卓设备泰语使用英语发音，中文使用中文发音
+                    // 尝试使用正确的泰语语言代码
                     if (lang.includes('th')) {
-                        this.currentUtterance.lang = 'en-US';  // 泰语用英语发音
-                        console.log(`安卓设备泰语: ${text}, 使用英语发音`);
+                        this.currentUtterance.lang = 'th-TH';  // 使用完整的泰语代码
+                        console.log(`安卓设备泰语: ${text}, 语言: th-TH`);
                     } else {
-                        this.currentUtterance.lang = 'zh-CN';  // 中文使用中文发音
-                        console.log(`安卓设备中文: ${text}, 使用中文发音`);
+                        this.currentUtterance.lang = 'zh-CN';  // 中文使用标准代码
+                        console.log(`安卓设备中文: ${text}, 语言: zh-CN`);
                     }
                 } else {
                     // 非安卓设备使用完整设置
@@ -839,12 +834,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 // 测试泰语
                 console.log('🇹🇭 测试泰语语音');
-                if (isAndroid) {
-                    console.log('📱 安卓设备：泰语将使用英语发音');
-                    await player.speak('สวัสดี', null, 'en-US');
-                } else {
-                    await player.speak('สวัสดี', player.thaiVoice, 'th-TH');
-                }
+                await player.speak('สวัสดี', player.thaiVoice, 'th-TH');
                 
                 console.log('✅ 语音测试完成');
                 
