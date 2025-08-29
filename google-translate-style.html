@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>泰语常用短语学习 - Google翻译风格</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .control-panel {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 15px;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+            z-index: 1000;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .control-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 80px;
+        }
+
+        .play-btn {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+        }
+
+        .pause-btn {
+            background: linear-gradient(45deg, #ff9800, #f57c00);
+            color: white;
+        }
+
+        .stop-btn {
+            background: linear-gradient(45deg, #f44336, #d32f2f);
+            color: white;
+        }
+
+        .control-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .status {
+            font-weight: bold;
+            color: #666;
+            margin: 0 15px;
+        }
+
+        .progress {
+            color: #4CAF50;
+            font-weight: bold;
+        }
+
+        .main-content {
+            margin-top: 100px;
+            padding: 20px;
+        }
+
+        .phrase-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+        }
+
+        .phrase-card {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            border-left: 5px solid #667eea;
+        }
+
+        .phrase-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+        }
+
+        .phrase-card.current {
+            border-left-color: #4CAF50;
+            background: rgba(76, 175, 80, 0.1);
+            transform: scale(1.02);
+        }
+
+        .thai-text {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            line-height: 1.4;
+        }
+
+        .chinese-text {
+            font-size: 18px;
+            color: #666;
+            margin-bottom: 15px;
+        }
+
+        .category {
+            display: inline-block;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .audio-status {
+            font-size: 12px;
+            color: #999;
+            margin-top: 10px;
+        }
+
+        .debug-info {
+            background: rgba(255, 193, 7, 0.1);
+            border-left: 3px solid #ffc107;
+            padding: 15px;
+            margin: 20px auto;
+            max-width: 1200px;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        @media (max-width: 768px) {
+            .control-panel {
+                padding: 10px;
+            }
+            
+            .control-btn {
+                padding: 8px 16px;
+                font-size: 14px;
+                min-width: 70px;
+            }
+            
+            .main-content {
+                margin-top: 120px;
+                padding: 15px;
+            }
+            
+            .phrase-container {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            
+            .thai-text {
+                font-size: 20px;
+            }
+            
+            .chinese-text {
+                font-size: 16px;
+            }
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="control-panel">
+        <button class="control-btn play-btn" onclick="startLearning()">▶️ 开始学习</button>
+        <button class="control-btn pause-btn" onclick="pauseLearning()">⏸️ 暂停</button>
+        <button class="control-btn stop-btn" onclick="stopLearning()">⏹️ 停止</button>
+        <div class="status">
+            <span class="progress" id="progress">准备就绪</span>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="debug-info">
+            <strong>🔧 调试信息：</strong>
+            <div id="debugInfo">正在检测语音功能...</div>
+        </div>
+        
+        <div class="phrase-container" id="phraseContainer">
+            <div class="loading">正在加载泰语短语...</div>
+        </div>
+    </div>
+
+    <script>
+        // 泰语常用短语数据
+        const phrases = [
+            // 问候类
+            { thai: "สวัสดี", chinese: "你好", category: "问候" },
+            { thai: "สวัสดีครับ", chinese: "你好（男性用）", category: "问候" },
+            { thai: "สวัสดีค่ะ", chinese: "你好（女性用）", category: "问候" },
+            { thai: "ลาก่อน", chinese: "再见", category: "问候" },
+            { thai: "ขอบคุณ", chinese: "谢谢", category: "问候" },
+            { thai: "ขอบคุณครับ", chinese: "谢谢（男性用）", category: "问候" },
+            { thai: "ขอบคุณค่ะ", chinese: "谢谢（女性用）", category: "问候" },
+            { thai: "ไม่เป็นไร", chinese: "没关系", category: "问候" },
+            { thai: "ขอโทษ", chinese: "对不起", category: "问候" },
+            { thai: "ยินดีที่ได้รู้จัก", chinese: "很高兴认识你", category: "问候" },
+
+            // 日常用语
+            { thai: "คุณสบายดีไหม", chinese: "你好吗？", category: "日常" },
+            { thai: "สบายดี", chinese: "我很好", category: "日常" },
+            { thai: "คุณชื่ออะไร", chinese: "你叫什么名字？", category: "日常" },
+            { thai: "ผมชื่อ", chinese: "我叫（男性用）", category: "日常" },
+            { thai: "ดิฉันชื่อ", chinese: "我叫（女性用）", category: "日常" },
+            { thai: "คุณมาจากไหน", chinese: "你来自哪里？", category: "日常" },
+            { thai: "ผมมาจากจีน", chinese: "我来自中国（男性用）", category: "日常" },
+            { thai: "ดิฉันมาจากจีน", chinese: "我来自中国（女性用）", category: "日常" },
+            { thai: "คุณอายุเท่าไหร่", chinese: "你多大了？", category: "日常" },
+            { thai: "อร่อย", chinese: "好吃", category: "日常" },
+
+            // 购物类
+            { thai: "นี่เท่าไหร่", chinese: "这个多少钱？", category: "购物" },
+            { thai: "แพงไป", chinese: "太贵了", category: "购物" },
+            { thai: "ลดราคาได้ไหม", chinese: "能便宜点吗？", category: "购物" },
+            { thai: "ผมจะซื้อ", chinese: "我要买（男性用）", category: "购物" },
+            { thai: "ดิฉันจะซื้อ", chinese: "我要买（女性用）", category: "购物" },
+            { thai: "มีสีอื่นไหม", chinese: "有其他颜色吗？", category: "购物" },
+            { thai: "มีไซส์อื่นไหม", chinese: "有其他尺寸吗？", category: "购物" },
+            { thai: "ขอใบเสร็จ", chinese: "要收据", category: "购物" },
+            { thai: "จ่ายเงินสด", chinese: "付现金", category: "购物" },
+            { thai: "จ่ายด้วยบัตร", chinese: "刷卡", category: "购物" },
+
+            // 餐厅类
+            { thai: "ขอเมนู", chinese: "要菜单", category: "餐厅" },
+            { thai: "ผมจะสั่ง", chinese: "我要点（男性用）", category: "餐厅" },
+            { thai: "ดิฉันจะสั่ง", chinese: "我要点（女性用）", category: "餐厅" },
+            { thai: "ไม่เผ็ด", chinese: "不要辣", category: "餐厅" },
+            { thai: "เผ็ดนิดหน่อย", chinese: "微辣", category: "餐厅" },
+            { thai: "เผ็ดมาก", chinese: "很辣", category: "餐厅" },
+            { thai: "เช็คบิล", chinese: "买单", category: "餐厅" },
+            { thai: "ขอน้ำ", chinese: "要水", category: "餐厅" },
+            { thai: "ขอเบียร์", chinese: "要啤酒", category: "餐厅" },
+            { thai: "ขอไก่ย่าง", chinese: "要烤鸡", category: "餐厅" },
+
+            // 旅行类
+            { thai: "สถานีรถไฟอยู่ไหน", chinese: "火车站在哪里？", category: "旅行" },
+            { thai: "สนามบินอยู่ไหน", chinese: "机场在哪里？", category: "旅行" },
+            { thai: "โรงแรมอยู่ไหน", chinese: "酒店在哪里？", category: "旅行" },
+            { thai: "ห้องน้ำอยู่ไหน", chinese: "厕所在哪里？", category: "旅行" },
+            { thai: "ไปยังไง", chinese: "怎么去？", category: "旅行" },
+            { thai: "เท่าไหร่", chinese: "多少钱？", category: "旅行" },
+            { thai: "ใกล้ไหม", chinese: "近吗？", category: "旅行" },
+            { thai: "ไกลไหม", chinese: "远吗？", category: "旅行" },
+            { thai: "ขอแผนที่", chinese: "要地图", category: "旅行" },
+            { thai: "หลงทาง", chinese: "迷路了", category: "旅行" }
+        ];
+
+        let currentIndex = 0;
+        let isPlaying = false;
+        let isPaused = false;
+        let availableVoices = [];
+
+        // 获取可用语音
+        function loadVoices() {
+            return new Promise((resolve) => {
+                const voices = speechSynthesis.getVoices();
+                if (voices.length > 0) {
+                    availableVoices = voices;
+                    resolve(voices);
+                } else {
+                    speechSynthesis.onvoiceschanged = () => {
+                        availableVoices = speechSynthesis.getVoices();
+                        resolve(availableVoices);
+                    };
+                }
+            });
+        }
+
+        // 查找最佳泰语语音
+        function findBestThaiVoice() {
+            const thaiVoices = availableVoices.filter(voice => 
+                voice.lang.startsWith('th') || 
+                voice.lang.includes('thai') ||
+                voice.name.toLowerCase().includes('thai')
+            );
+            
+            console.log('找到的泰语语音:', thaiVoices);
+            
+            // 优先选择Google的泰语语音
+            const googleThai = thaiVoices.find(voice => 
+                voice.name.toLowerCase().includes('google')
+            );
+            
+            if (googleThai) return googleThai;
+            
+            // 其次选择任何泰语语音
+            if (thaiVoices.length > 0) return thaiVoices[0];
+            
+            // 最后使用默认语音
+            return availableVoices.find(voice => voice.default) || availableVoices[0];
+        }
+
+        // 查找中文语音
+        function findChineseVoice() {
+            const chineseVoices = availableVoices.filter(voice => 
+                voice.lang.startsWith('zh') || 
+                voice.lang.includes('chinese')
+            );
+            
+            return chineseVoices.find(voice => voice.default) || chineseVoices[0] || availableVoices[0];
+        }
+
+        // 更新调试信息
+        function updateDebugInfo() {
+            const debugDiv = document.getElementById('debugInfo');
+            const thaiVoice = findBestThaiVoice();
+            const chineseVoice = findChineseVoice();
+            
+            debugDiv.innerHTML = `
+                <div>总语音数量: ${availableVoices.length}</div>
+                <div>泰语语音: ${thaiVoice ? thaiVoice.name + ' (' + thaiVoice.lang + ')' : '未找到'}</div>
+                <div>中文语音: ${chineseVoice ? chineseVoice.name + ' (' + chineseVoice.lang + ')' : '未找到'}</div>
+                <div>用户代理: ${navigator.userAgent.substring(0, 50)}...</div>
+            `;
+        }
+
+        // 播放语音（模仿Google翻译的方式）
+        function speak(text, lang) {
+            return new Promise((resolve, reject) => {
+                if (!('speechSynthesis' in window)) {
+                    reject(new Error('不支持语音合成'));
+                    return;
+                }
+
+                // 停止当前播放
+                speechSynthesis.cancel();
+
+                const utterance = new SpeechSynthesisUtterance(text);
+                
+                // 根据语言选择合适的语音
+                if (lang === 'th' || lang === 'th-TH') {
+                    const thaiVoice = findBestThaiVoice();
+                    if (thaiVoice) {
+                        utterance.voice = thaiVoice;
+                        utterance.lang = thaiVoice.lang;
+                    } else {
+                        utterance.lang = 'th-TH';
+                    }
+                } else if (lang === 'zh-CN' || lang === 'zh') {
+                    const chineseVoice = findChineseVoice();
+                    if (chineseVoice) {
+                        utterance.voice = chineseVoice;
+                        utterance.lang = chineseVoice.lang;
+                    } else {
+                        utterance.lang = 'zh-CN';
+                    }
+                }
+
+                // 设置语音参数（模仿Google翻译）
+                utterance.rate = 0.8;
+                utterance.pitch = 1.0;
+                utterance.volume = 1.0;
+
+                // 事件处理
+                utterance.onstart = () => {
+                    console.log(`开始播放: ${text} (${utterance.lang})`);
+                };
+
+                utterance.onend = () => {
+                    console.log(`播放完成: ${text}`);
+                    resolve();
+                };
+
+                utterance.onerror = (event) => {
+                    console.error(`播放错误: ${event.error}`, event);
+                    reject(new Error(`语音播放失败: ${event.error}`));
+                };
+
+                // 开始播放
+                try {
+                    speechSynthesis.speak(utterance);
+                    
+                    // 设置超时保护
+                    setTimeout(() => {
+                        if (speechSynthesis.speaking) {
+                            speechSynthesis.cancel();
+                            reject(new Error('播放超时'));
+                        }
+                    }, 10000);
+                } catch (error) {
+                    reject(error);
+                }
+            });
+        }
+
+        // 初始化页面
+        async function initializePage() {
+            // 加载语音
+            await loadVoices();
+            updateDebugInfo();
+            
+            const container = document.getElementById('phraseContainer');
+            container.innerHTML = '';
+            
+            phrases.forEach((phrase, index) => {
+                const card = document.createElement('div');
+                card.className = 'phrase-card';
+                card.id = `phrase-${index}`;
+                card.innerHTML = `
+                    <div class="category">${phrase.category}</div>
+                    <div class="thai-text">${phrase.thai}</div>
+                    <div class="chinese-text">${phrase.chinese}</div>
+                    <div class="audio-status" id="status-${index}">准备播放</div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // 播放当前短语
+        async function playCurrentPhrase() {
+            if (currentIndex >= phrases.length) {
+                stopLearning();
+                return;
+            }
+
+            const phrase = phrases[currentIndex];
+            const card = document.getElementById(`phrase-${currentIndex}`);
+            const status = document.getElementById(`status-${currentIndex}`);
+            
+            // 高亮当前卡片
+            document.querySelectorAll('.phrase-card').forEach(c => c.classList.remove('current'));
+            card.classList.add('current');
+            card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            
+            // 更新进度
+            document.getElementById('progress').textContent = `${currentIndex + 1}/${phrases.length} - ${phrase.category}`;
+            
+            try {
+                // 播放泰语 3 次
+                for (let i = 0; i < 3; i++) {
+                    if (!isPlaying || isPaused) return;
+                    status.textContent = `播放泰语 ${i + 1}/3`;
+                    await speak(phrase.thai, 'th-TH');
+                    if (!isPlaying || isPaused) return;
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                }
+                
+                // 播放中文 3 次
+                for (let i = 0; i < 3; i++) {
+                    if (!isPlaying || isPaused) return;
+                    status.textContent = `播放中文 ${i + 1}/3`;
+                    await speak(phrase.chinese, 'zh-CN');
+                    if (!isPlaying || isPaused) return;
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                }
+                
+                status.textContent = '播放完成';
+                
+                // 继续下一个
+                if (isPlaying && !isPaused) {
+                    currentIndex++;
+                    setTimeout(() => playCurrentPhrase(), 1000);
+                }
+                
+            } catch (error) {
+                console.error('播放错误:', error);
+                status.textContent = `播放失败: ${error.message}`;
+                // 继续下一个
+                if (isPlaying && !isPaused) {
+                    currentIndex++;
+                    setTimeout(() => playCurrentPhrase(), 1000);
+                }
+            }
+        }
+
+        // 开始学习
+        function startLearning() {
+            if (isPaused) {
+                isPaused = false;
+                playCurrentPhrase();
+            } else {
+                isPlaying = true;
+                isPaused = false;
+                currentIndex = 0;
+                playCurrentPhrase();
+            }
+        }
+
+        // 暂停学习
+        function pauseLearning() {
+            isPaused = true;
+            speechSynthesis.cancel();
+        }
+
+        // 停止学习
+        function stopLearning() {
+            isPlaying = false;
+            isPaused = false;
+            currentIndex = 0;
+            speechSynthesis.cancel();
+            
+            document.querySelectorAll('.phrase-card').forEach(c => c.classList.remove('current'));
+            document.querySelectorAll('.audio-status').forEach(s => s.textContent = '准备播放');
+            document.getElementById('progress').textContent = '已停止';
+        }
+
+        // 页面加载完成后初始化
+        window.addEventListener('load', initializePage);
+    </script>
+</body>
+</html>
