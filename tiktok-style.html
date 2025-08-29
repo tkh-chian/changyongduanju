@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>泰语常用短语学习 - TikTok风格</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .control-panel {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 15px;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+            z-index: 1000;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .control-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: white;
+            min-width: 80px;
+        }
+
+        .play-btn { background: linear-gradient(45deg, #4CAF50, #45a049); }
+        .pause-btn { background: linear-gradient(45deg, #ff9800, #f57c00); }
+        .stop-btn { background: linear-gradient(45deg, #f44336, #d32f2f); }
+        .test-btn { background: linear-gradient(45deg, #9c27b0, #7b1fa2); }
+
+        .control-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .status {
+            background: rgba(255,255,255,0.8);
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            color: #333;
+            min-width: 200px;
+            text-align: center;
+        }
+
+        .main-content {
+            margin-top: 100px;
+            padding: 20px;
+        }
+
+        .phrase-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .phrase-card {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: 3px solid transparent;
+        }
+
+        .phrase-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+        }
+
+        .phrase-card.current {
+            border-color: #4CAF50;
+            background: rgba(76, 175, 80, 0.1);
+            transform: translateY(-5px);
+        }
+
+        .thai-text {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            line-height: 1.4;
+        }
+
+        .pronunciation {
+            font-size: 16px;
+            color: #e74c3c;
+            margin-bottom: 10px;
+            font-style: italic;
+        }
+
+        .chinese-text {
+            font-size: 18px;
+            color: #7f8c8d;
+            margin-bottom: 15px;
+            line-height: 1.4;
+        }
+
+        .category {
+            display: inline-block;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .progress {
+            background: rgba(255,255,255,0.8);
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .notice {
+            background: rgba(52, 152, 219, 0.9);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px auto;
+            max-width: 800px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .debug-info {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px auto;
+            max-width: 800px;
+            font-family: monospace;
+            font-size: 12px;
+            color: #333;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+
+        @media (max-width: 768px) {
+            .control-panel {
+                padding: 10px;
+                gap: 8px;
+            }
+            
+            .control-btn {
+                padding: 8px 15px;
+                font-size: 14px;
+                min-width: 70px;
+            }
+            
+            .main-content {
+                margin-top: 120px;
+                padding: 15px;
+            }
+            
+            .phrase-grid {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            
+            .phrase-card {
+                padding: 15px;
+            }
+            
+            .thai-text {
+                font-size: 20px;
+            }
+            
+            .chinese-text {
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="control-panel">
+        <button class="control-btn play-btn" onclick="startLearning()">▶ 开始学习</button>
+        <button class="control-btn pause-btn" onclick="pauseLearning()">⏸ 暂停</button>
+        <button class="control-btn stop-btn" onclick="stopLearning()">⏹ 停止</button>
+        <button class="control-btn test-btn" onclick="runTikTokTest()">🎵 TikTok测试</button>
+        
+        <div class="status" id="status">准备开始学习</div>
+        <div class="progress" id="progress">0/20</div>
+    </div>
+
+    <div class="main-content">
+        <div class="notice">
+            🎵 TikTok风格版本：使用与TikTok相同的音频处理策略，确保泰语能够正常播放！
+        </div>
+        
+        <div class="debug-info" id="debugInfo">
+            正在初始化TikTok风格音频系统...
+        </div>
+        
+        <div class="phrase-grid" id="phraseGrid">
+            <!-- 短语卡片将通过JavaScript生成 -->
+        </div>
+    </div>
+
+    <script>
+        // 泰语短语数据
+        const phrases = [
+            { thai: "สวัสดี", chinese: "你好", category: "问候", pronunciation: "sa-wat-dee" },
+            { thai: "ขอบคุณ", chinese: "谢谢", category: "问候", pronunciation: "kop-kun" },
+            { thai: "ขอโทษ", chinese: "对不起", category: "问候", pronunciation: "kor-tot" },
+            { thai: "ลาก่อน", chinese: "再见", category: "问候", pronunciation: "la-gon" },
+            { thai: "ไม่เป็นไร", chinese: "没关系", category: "问候", pronunciation: "mai-pen-rai" },
+            
+            { thai: "คุณชื่ออะไร", chinese: "你叫什么名字？", category: "日常", pronunciation: "kun-cheu-a-rai" },
+            { thai: "ผมชื่อ", chinese: "我叫（男性用）", category: "日常", pronunciation: "pom-cheu" },
+            { thai: "ดิฉันชื่อ", chinese: "我叫（女性用）", category: "日常", pronunciation: "di-chan-cheu" },
+            { thai: "คุณมาจากไหน", chinese: "你来自哪里？", category: "日常", pronunciation: "kun-ma-jak-nai" },
+            { thai: "ผมมาจากจีน", chinese: "我来自中国", category: "日常", pronunciation: "pom-ma-jak-jeen" },
+            
+            { thai: "ราคาเท่าไหร่", chinese: "多少钱？", category: "购物", pronunciation: "ra-ka-tao-rai" },
+            { thai: "แพงไป", chinese: "太贵了", category: "购物", pronunciation: "paeng-pai" },
+            { thai: "ลดราคาได้ไหม", chinese: "能便宜点吗？", category: "购物", pronunciation: "lot-ra-ka-dai-mai" },
+            { thai: "ผมจะซื้อ", chinese: "我要买", category: "购物", pronunciation: "pom-ja-seu" },
+            
+            { thai: "ผมหิวแล้ว", chinese: "我饿了", category: "餐厅", pronunciation: "pom-hiu-laew" },
+            { thai: "มีเมนูไหม", chinese: "有菜单吗？", category: "餐厅", pronunciation: "mee-me-nu-mai" },
+            { thai: "ไม่เผ็ด", chinese: "不要辣", category: "餐厅", pronunciation: "mai-pet" },
+            { thai: "อร่อยมาก", chinese: "很好吃", category: "餐厅", pronunciation: "a-roy-mak" },
+            
+            { thai: "ช่วยด้วย", chinese: "救命", category: "紧急", pronunciation: "chuay-duay" },
+            { thai: "โรงพยาบาลอยู่ไหน", chinese: "医院在哪里？", category: "紧急", pronunciation: "rong-pa-ya-ban-yu-nai" }
+        ];
+
+        let currentIndex = 0;
+        let isPlaying = false;
+        let isPaused = false;
+        let debugLog = [];
+        let audioContext = null;
+        let isAudioContextInitialized = false;
+
+        // 调试日志
+        function addLog(message) {
+            const timestamp = new Date().toLocaleTimeString();
+            debugLog.push(`[${timestamp}] ${message}`);
+            updateDebugDisplay();
+        }
+
+        function updateDebugDisplay() {
+            const debugInfo = document.getElementById('debugInfo');
+            debugInfo.innerHTML = debugLog.slice(-8).join('<br>');
+        }
+
+        // 初始化TikTok风格音频系统
+        function initTikTokAudio() {
+            addLog('🎵 初始化TikTok风格音频系统...');
+            
+            // 1. 检查基础支持
+            if (!window.speechSynthesis) {
+                addLog('❌ 设备不支持语音合成');
+                return false;
+            }
+            
+            addLog('✅ 语音合成API可用');
+            
+            // 2. 初始化AudioContext（TikTok使用的音频上下文）
+            try {
+                window.AudioContext = window.AudioContext || window.webkitAudioContext;
+                if (window.AudioContext) {
+                    audioContext = new AudioContext();
+                    addLog('✅ AudioContext已创建');
+                }
+            } catch (error) {
+                addLog(`⚠️ AudioContext创建失败: ${error.message}`);
+            }
+            
+            // 3. 强制激活音频系统（TikTok的策略）
+            activateAudioSystem();
+            
+            return true;
+        }
+
+        // 激活音频系统（模仿TikTok）
+        function activateAudioSystem() {
+            addLog('🔧 激活音频系统...');
+            
+            // 策略1: 创建静音音频来激活系统
+            if (audioContext && audioContext.state === 'suspended') {
+                audioContext.resume().then(() => {
+                    addLog('✅ AudioContext已恢复');
+                }).catch(error => {
+                    addLog(`❌ AudioContext恢复失败: ${error.message}`);
+                });
+            }
+            
+            // 策略2: 播放极短的静音语音
+            const silentUtterance = new SpeechSynthesisUtterance('');
+            silentUtterance.volume = 0.01;
+            silentUtterance.rate = 10;
+            silentUtterance.pitch = 0.1;
+            
+            silentUtterance.onstart = () => {
+                addLog('✅ 语音引擎已激活');
+                speechSynthesis.cancel(); // 立即停止
+                loadVoicesAggressively();
+            };
+            
+            silentUtterance.onerror = () => {
+                addLog('⚠️ 语音引擎激活失败，继续尝试');
+                loadVoicesAggressively();
+            };
+            
+            try {
+                speechSynthesis.speak(silentUtterance);
+            } catch (error) {
+                addLog(`❌ 语音激活异常: ${error.message}`);
+                loadVoicesAggressively();
+            }
+        }
+
+        // 积极加载语音（TikTok策略）
+        function loadVoicesAggressively() {
+            addLog('🔄 积极加载语音列表...');
+            
+            let attempts = 0;
+            const maxAttempts = 15;
+            
+            function tryLoad() {
+                attempts++;
+                const voices = speechSynthesis.getVoices();
+                
+                addLog(`第${attempts}次尝试，找到${voices.length}个语音`);
+                
+                if (voices.length > 0) {
+                    analyzeVoicesForThai(voices);
+                    return;
+                }
+                
+                if (attempts < maxAttempts) {
+                    // 使用不同的延迟策略
+                    const delay = attempts <= 5 ? 200 : attempts <= 10 ? 500 : 1000;
+                    setTimeout(tryLoad, delay);
+                    
+                    // 每次尝试都重新激活系统
+                    if (attempts % 3 === 0) {
+                        addLog('🔄 重新激活音频系统...');
+                        activateAudioSystem();
+                    }
+                } else {
+                    addLog('❌ 多次尝试后仍无法加载语音');
+                    addLog('💡 尝试用户交互激活...');
+                }
+            }
+            
+            tryLoad();
+            
+            // 监听语音变化
+            speechSynthesis.onvoiceschanged = () => {
+                addLog('📢 检测到语音变化事件');
+                const voices = speechSynthesis.getVoices();
+                if (voices.length > 0) {
+                    analyzeVoicesForThai(voices);
+                }
+            };
+        }
+
+        // 分析泰语语音
+        function analyzeVoicesForThai(voices) {
+            addLog('🔍 分析泰语语音支持...');
+            
+            let thaiVoices = [];
+            let chineseVoices = [];
+            
+            voices.forEach(voice => {
+                const lang = voice.lang.toLowerCase();
+                if (lang.includes('th')) {
+                    thaiVoices.push(voice);
+                    addLog(`✅ 发现泰语语音: ${voice.name} (${voice.lang})`);
+                } else if (lang.includes('zh') || lang.includes('cmn')) {
+                    chineseVoices.push(voice);
+                }
+            });
+            
+            // 保存最佳语音
+            window.bestThaiVoice = thaiVoices[0];
+            window.bestChineseVoice = chineseVoices[0];
+            
+            if (window.bestThaiVoice) {
+                addLog(`🎯 选择泰语语音: ${window.bestThaiVoice.name}`);
+                addLog('🎉 TikTok风格音频系统初始化完成！');
+            } else {
+                addLog('⚠️ 未找到专用泰语语音');
+                addLog('🔧 将使用系统默认语音播放泰语');
+            }
+        }
+
+        // TikTok风格语音播放
+        function tikTokSpeak(text, lang = 'zh') {
+            return new Promise((resolve) => {
+                addLog(`🎵 TikTok风格播放: ${text} (${lang})`);
+                
+                if (!window.speechSynthesis) {
+                    addLog('❌ 语音合成不可用');
+                    resolve();
+                    return;
+                }
+                
+                // 确保AudioContext处于活跃状态
+                if (audioContext && audioContext.state === 'suspended') {
+                    audioContext.resume();
+                }
+                
+                const utterance = new SpeechSynthesisUtterance(text);
+                
+                // TikTok风格的语音设置
+                if (lang === 'th') {
+                    if (window.bestThaiVoice) {
+                        utterance.voice = window.bestThaiVoice;
+                        addLog(`🎯 使用专用泰语语音: ${window.bestThaiVoice.name}`);
+                    } else {
+                        addLog('🔧 使用默认语音播放泰语');
+                    }
+                    utterance.lang = 'th-TH';
+                } else {
+                    if (window.bestChineseVoice) {
+                        utterance.voice = window.bestChineseVoice;
+                    }
+                    utterance.lang = 'zh-CN';
+                }
+                
+                // TikTok优化的参数
+                utterance.rate = 0.9;
+                utterance.pitch = 1.0;
+                utterance.volume = 1.0;
+                
+                utterance.onstart = () => {
+                    addLog(`▶️ 开始播放: ${text}`);
+                };
+                
+                utterance.onend = () => {
+                    addLog(`✅ 播放完成: ${text}`);
+                    resolve();
+                };
+                
+                utterance.onerror = (e) => {
+                    addLog(`❌ 播放失败: ${text} - ${e.error}`);
+                    resolve();
+                };
+                
+                try {
+                    speechSynthesis.speak(utterance);
+                } catch (error) {
+                    addLog(`❌ 播放异常: ${error.message}`);
+                    resolve();
+                }
+            });
+        }
+
+        // 初始化页面
+        function init() {
+            renderPhrases();
+            updateStatus();
+            initTikTokAudio();
+        }
+
+        // 渲染短语卡片
+        function renderPhrases() {
+            const grid = document.getElementById('phraseGrid');
+            grid.innerHTML = '';
+            
+            phrases.forEach((phrase, index) => {
+                const card = document.createElement('div');
+                card.className = 'phrase-card';
+                card.onclick = () => jumpToPhrase(index);
+                
+                card.innerHTML = `
+                    <div class="category">${phrase.category}</div>
+                    <div class="thai-text">${phrase.thai}</div>
+                    <div class="pronunciation">[${phrase.pronunciation}]</div>
+                    <div class="chinese-text">${phrase.chinese}</div>
+                `;
+                
+                grid.appendChild(card);
+            });
+        }
+
+        // 更新状态显示
+        function updateStatus() {
+            const status = document.getElementById('status');
+            const progress = document.getElementById('progress');
+            
+            if (isPlaying && !isPaused) {
+                status.textContent = `正在学习: ${phrases[currentIndex].category}`;
+            } else if (isPaused) {
+                status.textContent = '已暂停';
+            } else {
+                status.textContent = '准备开始学习';
+            }
+            
+            progress.textContent = `${currentIndex + 1}/${phrases.length}`;
+            
+            // 高亮当前短语
+            const cards = document.querySelectorAll('.phrase-card');
+            cards.forEach((card, index) => {
+                card.classList.toggle('current', index === currentIndex);
+            });
+            
+            // 滚动到当前短语
+            if (cards[currentIndex]) {
+                cards[currentIndex].scrollIntoView({ 
+                    behavior: 'smooth', 
+                    block: 'center' 
+                });
+            }
+        }
+
+        // 播放当前短语
+        async function playCurrentPhrase() {
+            if (!isPlaying || isPaused) return;
+            
+            const phrase = phrases[currentIndex];
+            updateStatus();
+            
+            addLog(`🎓 开始学习: ${phrase.thai} - ${phrase.chinese}`);
+            
+            try {
+                // 播放泰语3遍
+                for (let i = 0; i < 3; i++) {
+                    if (!isPlaying || isPaused) return;
+                    await tikTokSpeak(phrase.thai, 'th');
+                    if (!isPlaying || isPaused) return;
+                    await new Promise(resolve => setTimeout(resolve, 800));
+                }
+                
+                // 播放中文3遍
+                for (let i = 0; i < 3; i++) {
+                    if (!isPlaying || isPaused) return;
+                    await tikTokSpeak(phrase.chinese, 'zh');
+                    if (!isPlaying || isPaused) return;
+                    await new Promise(resolve => setTimeout(resolve, 800));
+                }
+                
+                // 短暂停顿后播放下一个
+                if (isPlaying && !isPaused) {
+                    await new Promise(resolve => setTimeout(resolve, 1500));
+                    nextPhrase();
+                }
+            } catch (error) {
+                addLog(`❌ 播放出错: ${error.message}`);
+                nextPhrase();
+            }
+        }
+
+        // 下一个短语
+        function nextPhrase() {
+            if (currentIndex < phrases.length - 1) {
+                currentIndex++;
+                playCurrentPhrase();
+            } else {
+                stopLearning();
+                addLog('🎉 学习完成！');
+                alert('恭喜！您已完成所有短语的学习！');
+            }
+        }
+
+        // 开始学习
+        function startLearning() {
+            addLog('🚀 开始TikTok风格学习');
+            isPlaying = true;
+            isPaused = false;
+            
+            // 确保音频系统已激活
+            if (audioContext && audioContext.state === 'suspended') {
+                audioContext.resume();
+            }
+            
+            playCurrentPhrase();
+        }
+
+        // 暂停学习
+        function pauseLearning() {
+            addLog('⏸️ 暂停学习');
+            isPaused = true;
+            speechSynthesis.cancel();
+            updateStatus();
+        }
+
+        // 停止学习
+        function stopLearning() {
+            addLog('⏹️ 停止学习');
+            isPlaying = false;
+            isPaused = false;
+            currentIndex = 0;
+            speechSynthesis.cancel();
+            updateStatus();
+        }
+
+        // 跳转到指定短语
+        function jumpToPhrase(index) {
+            addLog(`⏭️ 跳转到短语 ${index + 1}`);
+            currentIndex = index;
+            updateStatus();
+            if (isPlaying && !isPaused) {
+                speechSynthesis.cancel();
+                playCurrentPhrase();
+            }
+        }
+
+        // TikTok风格测试
+        async function runTikTokTest() {
+            addLog('🧪 开始TikTok风格测试...');
+            
+            try {
+                // 确保音频系统激活
+                if (audioContext && audioContext.state === 'suspended') {
+                    await audioContext.resume();
+                }
+                
+                addLog('测试1: 中文语音');
+                await tikTokSpeak('你好，这是TikTok风格的中文测试', 'zh');
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                addLog('测试2: 泰语语音');
+                await tikTokSpeak('สวัสดี', 'th');
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                addLog('测试3: 另一个泰语');
+                await tikTokSpeak('ขอบคุณ', 'th');
+                
+                addLog('✅ TikTok风格测试完成');
+                alert('TikTok风格测试完成！请查看调试信息了解详细结果。');
+            } catch (error) {
+                addLog(`❌ 测试失败: ${error.message}`);
+                alert('测试过程中出现错误，请查看调试信息。');
+            }
+        }
+
+        // 用户交互激活（点击任何地方激活音频）
+        document.addEventListener('click', function() {
+            if (!isAudioContextInitialized) {
+                isAudioContextInitialized = true;
+                addLog('👆 用户交互激活音频系统');
+                
+                if (audioContext && audioContext.state === 'suspended') {
+                    audioContext.resume().then(() => {
+                        addLog('✅ 用户交互激活成功');
+                    });
+                }
+                
+                // 重新尝试加载语音
+                loadVoicesAggressively();
+            }
+        });
+
+        // 页面加载完成后初始化
+        window.onload = init;
+    </script>
+</body>
+</html>
