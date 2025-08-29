@@ -812,5 +812,36 @@ class ThaiPhraseLearning {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    new ThaiPhraseLearning();
+    const player = new ThaiPhraseLearning();
+    
+    // 添加测试按钮功能
+    const testBtn = document.getElementById('testBtn');
+    if (testBtn) {
+        testBtn.addEventListener('click', async () => {
+            console.log('🧪 开始语音测试');
+            
+            // 强制激活音频
+            player.enableAudio();
+            
+            // 等待一下让语音引擎准备
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            try {
+                // 测试中文
+                console.log('🇨🇳 测试中文语音');
+                await player.speak('你好', player.chineseVoice, 'zh');
+                
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                // 测试泰语
+                console.log('🇹🇭 测试泰语语音');
+                await player.speak('สวัสดี', player.thaiVoice, 'th');
+                
+                console.log('✅ 语音测试完成');
+                
+            } catch (error) {
+                console.error('❌ 语音测试失败:', error);
+            }
+        });
+    }
 });

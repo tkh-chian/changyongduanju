@@ -360,6 +360,15 @@ body {
     }
 }
 
+/* 测试按钮样式 */
+.btn.test {
+    background: linear-gradient(135deg, #9c27b0, #7b1fa2);
+}
+
+.btn.test:hover {
+    background: linear-gradient(135deg, #8e24aa, #6a1b9a);
+}
+
 /* 响应式设计 */
 @media (max-width: 768px) {
     .control-panel {
