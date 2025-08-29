@@ -341,18 +341,48 @@
             <p>完整的泰语字母表与发音指南</p>
         </div>
         
+        <!-- 移动端音频测试区 -->
+        <div id="audioTest" style="display: none; background: #e8f4fd; padding: 15px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #b8daff; text-align: center;">
+            <h3 style="color: #004085; margin-bottom: 15px;">🔊 移动端音频测试</h3>
+            <p>请点击下面的按钮测试您的设备是否能正常播放声音：</p>
+            <div style="margin: 15px 0;">
+                <button onclick="testMobileAudio()" style="background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 5px; font-weight: bold; margin: 5px;">点击播放测试声音</button>
+                <button onclick="showAudioHelp()" style="background: #6c757d; color: white; border: none; padding: 10px 20px; border-radius: 5px; margin: 5px;">查看音频帮助</button>
+            </div>
+            <div id="audioTestResult" style="margin-top: 10px; font-weight: bold;"></div>
+        </div>
+        
+        <!-- 移动端音频帮助 -->
+        <div id="audioHelp" style="display: none; background: #d4edda; padding: 15px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #c3e6cb;">
+            <h3 style="color: #155724; margin-bottom: 10px;">💡 解决移动端声音问题</h3>
+            <p>如果您在移动设备上听不到声音，请尝试以下方法：</p>
+            <ol style="text-align: left; margin-left: 20px; margin-top: 10px;">
+                <li><strong>确认音量：</strong> 设备音量已开启且不是静音模式</li>
+                <li><strong>强制解锁音频：</strong> 点击“点击播放测试声音”按钮多次</li>
+                <li><strong>切换浏览器：</strong> 尝试使用Safari（iOS）或其他浏览器</li>
+                <li><strong>浏览器设置：</strong> 确保已授权浏览器使用音频
+                    <ul style="margin-left: 15px; margin-top: 5px;">
+                        <li>Chrome: 点击地址栏锁图标 → 网站设置 → 声音 → 允许</li>
+                        <li>Safari: 设置 → Safari → 网站设置 → 允许所有网站播放声音</li>
+                    </ul>
+                </li>
+                <li><strong>使用外置扬声器或耳机：</strong> 有时候设备技术限制会影响扬声器播放</li>
+            </ol>
+            <button onclick="document.getElementById('audioHelp').style.display='none';" style="background: #155724; color: white; border: none; padding: 8px 15px; border-radius: 5px; margin-top: 10px; cursor: pointer;">关闭帮助</button>
+        </div>
+        
         <!-- 移动端提示 -->
         <div id="mobileTip" style="display: none; background: #fff3cd; padding: 15px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #ffeeba;">
             <h3 style="color: #856404; margin-bottom: 10px;">📱 移动端使用提示</h3>
             <p>检测到您正在使用移动设备浏览。</p>
             <p style="margin-top: 10px;"><strong>如何听到发音：</strong></p>
             <ol style="margin-left: 20px; margin-top: 5px;">
-                <li>请先点击字母卡片上的「🔊 发音」按钮测试</li>
-                <li>一定要先点击网页上任意位置，解锁手机的音频权限</li>
-                <li>如果仍无声音，请尝试用其他浏览器打开（如Chrome或Safari）</li>
+                <li>请先点击<span style="color:red;">上方的测试声音按钮</span>激活音频权限</li>
+                <li>然后点击字母卡片上的「🔊 发音」按钮测试</li>
+                <li>如果仍无声音，请点击「查看音频帮助」</li>
             </ol>
-            <button onclick="initAudio();" style="background: #856404; color: white; border: none; padding: 8px 15px; border-radius: 5px; margin-top: 10px; cursor: pointer;">解锁音频权限</button>
-            <button onclick="document.getElementById('mobileTip').style.display='none';" style="background: #856404; color: white; border: none; padding: 8px 15px; border-radius: 5px; margin-top: 10px; margin-left: 10px; cursor: pointer;">我知道了</button>
+            <button onclick="forceUnlockAudio();" style="background: #856404; color: white; border: none; padding: 8px 15px; border-radius: 5px; margin-top: 10px; cursor: pointer;">解锁音频权限</button>
+            <button onclick="document.getElementById('mobileTip').style.display='none';document.getElementById('audioTest').style.display='block';" style="background: #856404; color: white; border: none; padding: 8px 15px; border-radius: 5px; margin-top: 10px; margin-left: 10px; cursor: pointer;">我知道了</button>
         </div>
         
         <div class="summary">
@@ -432,7 +462,7 @@
             {thai: 'ฆ', pronunciation: 'kɔɔ rá-kang', english: 'kho rakhang', meaning: '(钟)'},
             {thai: 'ง', pronunciation: 'ngɔɔ nguu', english: 'ngo ngu', meaning: '(蛇)'},
             {thai: 'จ', pronunciation: 'jɔɔ jaan', english: 'cho chan', meaning: '(盘子)'},
-            {thai: 'ฉ', pronunciation: 'chɔɔ chìng', english: 'cho ching', meaning: '(钹)'},
+            {thai: 'ฉ', pronunciation: 'chɔɔ chìง', english: 'cho ching', meaning: '(钹)'},
             {thai: 'ช', pronunciation: 'chɔɔ cháang', english: 'cho chang', meaning: '(象)'},
             {thai: 'ซ', pronunciation: 'sɔɔ sôo', english: 'so so', meaning: '(链子)'},
             {thai: 'ฌ', pronunciation: 'chɔɔ chəə', english: 'cho choe', meaning: '(树)'},
@@ -531,6 +561,9 @@
         let isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
         let audioInitialized = false;
         let audioContext = null;
+        let mobileAudioUnlocked = false;
+        let audioTestDone = false;
+        let audioAttempts = 0;
 
         // 生成字母卡片
         function generateLetterCard(letter) {
@@ -941,6 +974,136 @@
                     card.style.display = 'none';
                 }
             });
+        }
+        
+        // 强制解锁移动端音频
+        function forceUnlockAudio() {
+            audioAttempts++;
+            
+            // 从头开始初始化音频
+            audioInitialized = false;
+            initAudio();
+            
+            // 尝试播放一段简短声音
+            playTestSound();
+            
+            // 更新按钮文本
+            const unlockBtn = document.querySelector('button[onclick="forceUnlockAudio();"]');
+            if (unlockBtn) {
+                unlockBtn.textContent = `解锁音频权限 (已尝试${audioAttempts}次)`;
+            }
+            
+            // 显示测试区域
+            document.getElementById('audioTest').style.display = 'block';
+        }
+
+        // 测试移动端音频
+        function testMobileAudio() {
+            if (!audioInitialized) {
+                initAudio();
+            }
+            
+            // 更新测试次数
+            audioAttempts++;
+            
+            // 播放测试声音
+            playTestSound();
+            
+            // 更新测试区域
+            const resultDiv = document.getElementById('audioTestResult');
+            resultDiv.innerHTML = `正在测试... 已尝试${audioAttempts}次<br>如果听到声音，请点击下面的按钮：`;
+            resultDiv.innerHTML += `<br><button onclick="audioTestSuccess()" style="background: #28a745; color: white; border: none; padding: 8px 15px; border-radius: 5px; margin: 5px; cursor: pointer;">✅ 我听到声音了</button>`;
+            resultDiv.innerHTML += `<button onclick="audioTestFailed()" style="background: #dc3545; color: white; border: none; padding: 8px 15px; border-radius: 5px; margin: 5px; cursor: pointer;">❌ 没听到声音</button>`;
+        }
+
+        // 播放测试声音
+        function playTestSound() {
+            // 使用多种方法尝试播放声音
+            
+            // 1. 尝试使用标准HTML5 Audio
+            try {
+                const audio = new Audio();
+                audio.src = 'data:audio/mp3;base64,/+MYxAAAAANIAAAAAExBTUUzLjk4LjIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA';
+                audio.volume = 1.0;
+                audio.play().then(() => {
+                    console.log('标准音频播放成功');
+                    mobileAudioUnlocked = true;
+                }).catch(e => {
+                    console.log('标准音频播放失败:', e);
+                });
+            } catch (e) {
+                console.log('标准音频播放异常:', e);
+            }
+            
+            // 2. 尝试使用语音合成API
+            if ('speechSynthesis' in window) {
+                try {
+                    // 停止当前播放
+                    speechSynthesis.cancel();
+                    
+                    // 先尝试英文发音（更容易工作）
+                    const utterance1 = new SpeechSynthesisUtterance('Test sound');
+                    utterance1.volume = 1.0;
+                    utterance1.rate = 1.0;
+                    utterance1.pitch = 1.0;
+                    speechSynthesis.speak(utterance1);
+                    
+                    // 再尝试泰语发音
+                    setTimeout(() => {
+                        const utterance2 = new SpeechSynthesisUtterance('ก ข ค');
+                        utterance2.lang = 'th-TH';
+                        utterance2.volume = 1.0;
+                        utterance2.rate = 0.8;
+                        speechSynthesis.speak(utterance2);
+                    }, 1000);
+                } catch (e) {
+                    console.log('语音合成异常:', e);
+                }
+            }
+            
+            // 3. 尝试使用Web Audio API
+            if (audioContext) {
+                try {
+                    // 创建一个震荡器
+                    const oscillator = audioContext.createOscillator();
+                    oscillator.type = 'sine';
+                    oscillator.frequency.setValueAtTime(440, audioContext.currentTime); // A4 音高
+                    
+                    // 创建音量节点
+                    const gainNode = audioContext.createGain();
+                    gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+                    
+                    // 连接节点
+                    oscillator.connect(gainNode);
+                    gainNode.connect(audioContext.destination);
+                    
+                    // 播放一小段时间
+                    oscillator.start();
+                    oscillator.stop(audioContext.currentTime + 0.5);
+                } catch (e) {
+                    console.log('Web Audio API异常:', e);
+                }
+            }
+        }
+
+        // 音频测试成功
+        function audioTestSuccess() {
+            mobileAudioUnlocked = true;
+            audioTestDone = true;
+            document.getElementById('audioTestResult').innerHTML = 
+                `<div style="color: green; font-weight: bold;">恭喜！您的设备可以正常播放声音。<br>现在你可以尝试点击字母卡片上的「发音」按钮了。</div>`;
+        }
+
+        // 音频测试失败
+        function audioTestFailed() {
+            document.getElementById('audioTestResult').innerHTML = 
+                `<div style="color: red; font-weight: bold;">抱歉，您的设备可能不支持此网站的音频播放。<br>请尝试「查看音频帮助」中的解决方法。</div>`;
+            showAudioHelp();
+        }
+
+        // 显示音频帮助
+        function showAudioHelp() {
+            document.getElementById('audioHelp').style.display = 'block';
         }
     </script>
 </body>
