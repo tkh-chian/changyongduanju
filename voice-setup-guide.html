@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>泰语语音设置指南</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+
+        .method {
+            background: rgba(52, 152, 219, 0.1);
+            border-left: 5px solid #3498db;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 10px;
+        }
+
+        .method h3 {
+            color: #3498db;
+            margin-bottom: 15px;
+            font-size: 20px;
+        }
+
+        .steps {
+            list-style: none;
+            padding: 0;
+        }
+
+        .steps li {
+            background: white;
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 3px solid #27ae60;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .steps li:before {
+            content: "✓ ";
+            color: #27ae60;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        .app-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .app-card {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .app-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .app-name {
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+
+        .app-desc {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .test-section {
+            background: rgba(46, 204, 113, 0.1);
+            border-left: 5px solid #2ecc71;
+            padding: 20px;
+            margin: 30px 0;
+            border-radius: 10px;
+        }
+
+        .test-btn {
+            background: linear-gradient(45deg, #2ecc71, #27ae60);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .test-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .warning {
+            background: rgba(231, 76, 60, 0.1);
+            border-left: 5px solid #e74c3c;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 8px;
+            color: #c0392b;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+                margin: 10px;
+            }
+            
+            h1 {
+                font-size: 24px;
+            }
+            
+            .app-list {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔊 泰语真实发音设置指南</h1>
+        
+        <div class="warning">
+            <strong>⚠️ 重要说明：</strong>您的设备目前不支持泰语语音合成，需要安装泰语语音包才能听到真实的泰语发音。
+        </div>
+
+        <div class="method">
+            <h3>📱 方案一：安装系统泰语语音包（最佳方案）</h3>
+            
+            <h4>🤖 Android系统设置：</h4>
+            <ul class="steps">
+                <li>打开 <strong>设置</strong> → <strong>语言和输入法</strong></li>
+                <li>找到 <strong>文字转语音输出</strong> 或 <strong>TTS</strong></li>
+                <li>选择 <strong>Google文字转语音引擎</strong></li>
+                <li>点击 <strong>设置</strong> → <strong>安装语音数据</strong></li>
+                <li>下载 <strong>泰语(ไทย)</strong> 语音包</li>
+                <li>重启浏览器，重新测试我们的网页</li>
+            </ul>
+
+            <h4>🍎 iPhone系统设置：</h4>
+            <ul class="steps">
+                <li>打开 <strong>设置</strong> → <strong>辅助功能</strong></li>
+                <li>选择 <strong>朗读内容</strong></li>
+                <li>点击 <strong>声音</strong> → <strong>添加新声音</strong></li>
+                <li>选择 <strong>泰语</strong> → 下载语音包</li>
+                <li>设置完成后测试网页</li>
+            </ul>
+        </div>
+
+        <div class="method">
+            <h3>📲 方案二：使用专业泰语APP</h3>
+            <div class="app-list">
+                <div class="app-card">
+                    <div class="app-name">Google翻译</div>
+                    <div class="app-desc">免费，支持泰语语音</div>
+                </div>
+                <div class="app-card">
+                    <div class="app-name">Forvo发音词典</div>
+                    <div class="app-desc">真人发音，最准确</div>
+                </div>
+                <div class="app-card">
+                    <div class="app-name">泰语学习</div>
+                    <div class="app-desc">专业泰语教学</div>
+                </div>
+                <div class="app-card">
+                    <div class="app-name">Nemo泰语</div>
+                    <div class="app-desc">离线发音功能</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="method">
+            <h3>🌐 方案三：在线发音工具</h3>
+            <ul class="steps">
+                <li><strong>Google翻译网页版：</strong> translate.google.com</li>
+                <li><strong>Forvo发音词典：</strong> forvo.com</li>
+                <li><strong>泰语在线词典：</strong> thai-language.com</li>
+            </ul>
+        </div>
+
+        <div class="test-section">
+            <h3>🧪 测试您的泰语语音设置</h3>
+            <p>设置完成后，点击下面的按钮测试泰语发音：</p>
+            <button class="test-btn" onclick="testThai()">🔊 测试泰语发音</button>
+            <button class="test-btn" onclick="testChinese()">🔊 测试中文发音</button>
+            <div id="testResult" style="margin-top: 15px; font-weight: bold;"></div>
+        </div>
+
+        <div class="method">
+            <h3>🎯 设置完成后的使用建议</h3>
+            <ul class="steps">
+                <li>先用我们的网页学习基础短语</li>
+                <li>配合Google翻译验证发音</li>
+                <li>使用Forvo听真人发音对比</li>
+                <li>实际交流中不断练习和纠正</li>
+            </ul>
+        </div>
+
+        <div style="text-align: center; margin-top: 30px;">
+            <button class="test-btn" onclick="goToLearning()">🚀 返回泰语学习页面</button>
+        </div>
+    </div>
+
+    <script>
+        function testThai() {
+            const testResult = document.getElementById('testResult');
+            testResult.textContent = '正在测试泰语发音...';
+            
+            if ('speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance('สวัสดี');
+                utterance.lang = 'th-TH';
+                utterance.rate = 0.8;
+                
+                utterance.onstart = () => {
+                    testResult.textContent = '✅ 泰语发音正常！您可以使用我们的学习网页了。';
+                    testResult.style.color = '#27ae60';
+                };
+                
+                utterance.onerror = () => {
+                    testResult.textContent = '❌ 泰语发音失败，请按照上面的指南安装泰语语音包。';
+                    testResult.style.color = '#e74c3c';
+                };
+                
+                speechSynthesis.speak(utterance);
+                
+                // 5秒后如果没有反应，显示失败信息
+                setTimeout(() => {
+                    if (testResult.textContent === '正在测试泰语发音...') {
+                        testResult.textContent = '❌ 泰语发音失败，请按照上面的指南安装泰语语音包。';
+                        testResult.style.color = '#e74c3c';
+                    }
+                }, 5000);
+            } else {
+                testResult.textContent = '❌ 您的浏览器不支持语音合成功能。';
+                testResult.style.color = '#e74c3c';
+            }
+        }
+
+        function testChinese() {
+            const testResult = document.getElementById('testResult');
+            testResult.textContent = '正在测试中文发音...';
+            
+            if ('speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance('你好');
+                utterance.lang = 'zh-CN';
+                utterance.rate = 0.8;
+                
+                utterance.onstart = () => {
+                    testResult.textContent = '✅ 中文发音正常！';
+                    testResult.style.color = '#27ae60';
+                };
+                
+                utterance.onerror = () => {
+                    testResult.textContent = '❌ 中文发音失败。';
+                    testResult.style.color = '#e74c3c';
+                };
+                
+                speechSynthesis.speak(utterance);
+            } else {
+                testResult.textContent = '❌ 您的浏览器不支持语音合成功能。';
+                testResult.style.color = '#e74c3c';
+            }
+        }
+
+        function goToLearning() {
+            window.location.href = 'final-practical-version.html';
+        }
+    </script>
+</body>
+</html>
