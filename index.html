@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>泰语字母学习</title>
+    <title>泰语常用短语学习</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container">
         <!-- 控制面板 - 固定在顶部 -->
         <div class="control-panel">
-            <h1>泰语字母学习</h1>
+            <h1>泰语常用短语学习</h1>
             <div class="controls">
                 <button id="playBtn" class="btn play">播放</button>
                 <button id="pauseBtn" class="btn pause" disabled>暂停</button>
@@ -26,24 +26,33 @@
                 </div>
             </div>
             <div class="progress-info">
-                <span id="currentLetter">准备开始</span>
-                <span id="progressText">0/44</span>
+                <span id="currentPhrase">准备开始</span>
+                <span id="progressText">0/500</span>
             </div>
         </div>
 
-        <!-- 字母显示区域 -->
-        <div class="letter-display">
-            <div id="currentLetterCard" class="letter-card">
-                <div class="thai-letter">点击播放开始学习</div>
-                <div class="pronunciation"></div>
-                <div class="meaning"></div>
+        <!-- 短语显示区域 -->
+        <div class="phrase-display">
+            <div id="currentPhraseCard" class="phrase-card">
+                <div class="thai-phrase">点击播放开始学习</div>
+                <div class="chinese-meaning"></div>
+                <div class="category"></div>
             </div>
         </div>
 
-        <!-- 字母列表 -->
-        <div class="letter-list">
-            <h2>泰语字母表</h2>
-            <div id="letterGrid" class="letter-grid"></div>
+        <!-- 短语列表 -->
+        <div class="phrase-list">
+            <h2>泰语常用短语 (500句)</h2>
+            <div class="category-filter">
+                <button class="filter-btn active" data-category="all">全部</button>
+                <button class="filter-btn" data-category="greeting">问候</button>
+                <button class="filter-btn" data-category="daily">日常</button>
+                <button class="filter-btn" data-category="shopping">购物</button>
+                <button class="filter-btn" data-category="restaurant">餐厅</button>
+                <button class="filter-btn" data-category="travel">旅行</button>
+                <button class="filter-btn" data-category="emergency">紧急</button>
+            </div>
+            <div id="phraseGrid" class="phrase-grid"></div>
         </div>
     </div>
 
