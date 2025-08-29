@@ -448,20 +448,62 @@ class ThaiPhraseLearning {
             this.speechSynthesis.onvoiceschanged = () => this.loadVoices();
         }
         
-        // 添加用户交互检测
+        // 添加用户交互检测 - 安卓设备需要更多触发方式
+        const isAndroid = /Android/i.test(navigator.userAgent);
+        
         document.addEventListener('click', () => this.enableAudio(), { once: true });
         document.addEventListener('touchstart', () => this.enableAudio(), { once: true });
+        
+        if (isAndroid) {
+            // 安卓设备额外的激活方式
+            document.addEventListener('touchend', () => this.enableAudio(), { once: true });
+            document.addEventListener('pointerdown', () => this.enableAudio(), { once: true });
+            
+            // 页面加载完成后也尝试激活
+            window.addEventListener('load', () => {
+                setTimeout(() => this.enableAudio(), 1000);
+            });
+        }
     }
     
     enableAudio() {
+        console.log('🎤 启用音频功能');
+        
+        // 检测安卓设备
+        const isAndroid = /Android/i.test(navigator.userAgent);
+        
         if (window.AudioContext || window.webkitAudioContext) {
             const AudioContext = window.AudioContext || window.webkitAudioContext;
             const audioContext = new AudioContext();
             if (audioContext.state === 'suspended') {
-                audioContext.resume();
+                audioContext.resume().then(() => {
+                    console.log('✅ 音频上下文已激活');
+                });
             }
         }
-        this.testSpeech();
+        
+        // 安卓设备需要特殊的语音激活
+        if (isAndroid) {
+            console.log('📱 检测到安卓设备，执行特殊初始化');
+            
+            // 安卓设备先播放一个短音来激活语音引擎
+            setTimeout(() => {
+                const testUtterance = new SpeechSynthesisUtterance('hi');
+                testUtterance.volume = 0.1;
+                testUtterance.rate = 2;
+                testUtterance.onend = () => {
+                    console.log('✅ 安卓语音引擎已激活');
+                    this.loadVoices();
+                };
+                testUtterance.onerror = () => {
+                    console.log('⚠️ 安卓语音激活失败，继续尝试');
+                    this.loadVoices();
+                };
+                this.speechSynthesis.speak(testUtterance);
+            }, 200);
+        } else {
+            this.testSpeech();
+        }
     }
     
     testSpeech() {
@@ -472,45 +514,51 @@ class ThaiPhraseLearning {
     
     loadVoices() {
         this.voices = this.speechSynthesis.getVoices();
+        const isAndroid = /Android/i.test(navigator.userAgent);
+        
         console.log('所有可用语音:', this.voices.map(v => `${v.name} (${v.lang})`));
         
-        // 寻找泰语语音 - 更宽泛的匹配条件
-        this.thaiVoice = this.voices.find(voice => 
-            voice.lang.toLowerCase().includes('th') || 
-            voice.lang.toLowerCase().includes('thai') ||
-            voice.name.toLowerCase().includes('thai')
-        );
-        
-        // 如果没有找到泰语语音，尝试使用英语语音作为备用
-        if (!this.thaiVoice) {
+        if (isAndroid) {
+            // 安卓设备：优先使用系统默认语音，不强制指定特定语音
+            console.log('📱 安卓设备：使用系统默认语音');
+            this.thaiVoice = null;  // 让系统自动选择
+            this.chineseVoice = null;  // 让系统自动选择
+        } else {
+            // 桌面设备：使用完整的语音选择逻辑
             this.thaiVoice = this.voices.find(voice => 
-                voice.lang.toLowerCase().includes('en') && 
+                voice.lang.toLowerCase().includes('th') || 
+                voice.lang.toLowerCase().includes('thai') ||
+                voice.name.toLowerCase().includes('thai')
+            );
+            
+            if (!this.thaiVoice) {
+                this.thaiVoice = this.voices.find(voice => 
+                    voice.lang.toLowerCase().includes('en') && 
+                    (voice.name.toLowerCase().includes('male') || voice.name.toLowerCase().includes('man'))
+                ) || this.voices.find(voice => voice.lang.toLowerCase().includes('en'));
+            }
+            
+            this.chineseVoice = this.voices.find(voice => 
+                (voice.lang.toLowerCase().includes('zh') || 
+                 voice.lang.toLowerCase().includes('chinese') ||
+                 voice.name.toLowerCase().includes('chinese')) &&
                 (voice.name.toLowerCase().includes('male') || voice.name.toLowerCase().includes('man'))
-            ) || this.voices.find(voice => voice.lang.toLowerCase().includes('en'));
+            ) || this.voices.find(voice => 
+                voice.lang.toLowerCase().includes('zh') || 
+                voice.lang.toLowerCase().includes('chinese') ||
+                voice.name.toLowerCase().includes('chinese')
+            );
+            
+            if (!this.thaiVoice && this.voices.length > 0) {
+                this.thaiVoice = this.voices[0];
+            }
+            if (!this.chineseVoice && this.voices.length > 0) {
+                this.chineseVoice = this.voices[0];
+            }
+            
+            console.log('选择的泰语语音:', this.thaiVoice?.name, this.thaiVoice?.lang);
+            console.log('选择的中文语音:', this.chineseVoice?.name, this.chineseVoice?.lang);
         }
-        
-        // 寻找中文语音
-        this.chineseVoice = this.voices.find(voice => 
-            (voice.lang.toLowerCase().includes('zh') || 
-             voice.lang.toLowerCase().includes('chinese') ||
-             voice.name.toLowerCase().includes('chinese')) &&
-            (voice.name.toLowerCase().includes('male') || voice.name.toLowerCase().includes('man'))
-        ) || this.voices.find(voice => 
-            voice.lang.toLowerCase().includes('zh') || 
-            voice.lang.toLowerCase().includes('chinese') ||
-            voice.name.toLowerCase().includes('chinese')
-        );
-        
-        // 备用语音
-        if (!this.thaiVoice && this.voices.length > 0) {
-            this.thaiVoice = this.voices[0];
-        }
-        if (!this.chineseVoice && this.voices.length > 0) {
-            this.chineseVoice = this.voices[0];
-        }
-        
-        console.log('选择的泰语语音:', this.thaiVoice?.name, this.thaiVoice?.lang);
-        console.log('选择的中文语音:', this.chineseVoice?.name, this.chineseVoice?.lang);
     }
     
     filterPhrases() {
@@ -588,31 +636,50 @@ class ThaiPhraseLearning {
     
     async speak(text, voice, lang = 'th-TH') {
         return new Promise((resolve) => {
+            // 检测安卓设备
+            const isAndroid = /Android/i.test(navigator.userAgent);
+            
             this.speechSynthesis.cancel();
             
             setTimeout(() => {
                 this.currentUtterance = new SpeechSynthesisUtterance(text);
-                this.currentUtterance.lang = lang;
+                
+                // 安卓设备特殊处理
+                if (isAndroid) {
+                    // 安卓设备不设置voice，让系统自动选择
+                    this.currentUtterance.voice = null;
+                    // 安卓设备使用更通用的语言代码
+                    if (lang.includes('th')) {
+                        this.currentUtterance.lang = 'th';  // 简化语言代码
+                    } else {
+                        this.currentUtterance.lang = 'zh';  // 简化语言代码
+                    }
+                    console.log(`安卓设备播放: ${text}, 语言: ${this.currentUtterance.lang}`);
+                } else {
+                    // 非安卓设备使用完整设置
+                    this.currentUtterance.lang = lang;
+                    if (voice) {
+                        this.currentUtterance.voice = voice;
+                    }
+                    console.log(`桌面设备播放: ${text}, 语言: ${this.currentUtterance.lang}`);
+                }
+                
                 this.currentUtterance.rate = this.speechRate;
                 this.currentUtterance.pitch = 1;
                 this.currentUtterance.volume = 1;
                 
-                if (voice) {
-                    this.currentUtterance.voice = voice;
-                }
-                
                 this.currentUtterance.onend = () => {
-                    console.log(`播放完成: ${text}`);
+                    console.log(`✅ 播放完成: ${text}`);
                     resolve();
                 };
                 
                 this.currentUtterance.onerror = (event) => {
-                    console.error('语音播放错误:', event.error, text);
+                    console.error('❌ 语音播放错误:', event.error, text);
                     resolve();
                 };
                 
                 this.currentUtterance.onstart = () => {
-                    console.log(`开始播放: ${text}, 语言: ${this.currentUtterance.lang}`);
+                    console.log(`🎵 开始播放: ${text}`);
                 };
                 
                 try {
@@ -621,7 +688,7 @@ class ThaiPhraseLearning {
                     console.error('语音播放异常:', error);
                     resolve();
                 }
-            }, 100);
+            }, isAndroid ? 300 : 100);  // 安卓设备使用更长延迟
         });
     }
     
