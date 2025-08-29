@@ -55,6 +55,7 @@ class ThaiAlphabetLearning {
         this.speechSynthesis = window.speechSynthesis;
         this.currentUtterance = null;
         this.voices = [];
+        this.speechRate = 1.0; // 默认语速
         
         this.initializeElements();
         this.setupEventListeners();
@@ -71,12 +72,20 @@ class ThaiAlphabetLearning {
         this.progressText = document.getElementById('progressText');
         this.currentLetterCard = document.getElementById('currentLetterCard');
         this.letterGrid = document.getElementById('letterGrid');
+        this.speedControl = document.getElementById('speedControl');
+        this.speedDisplay = document.getElementById('speedDisplay');
     }
     
     setupEventListeners() {
         this.playBtn.addEventListener('click', () => this.play());
         this.pauseBtn.addEventListener('click', () => this.pause());
         this.stopBtn.addEventListener('click', () => this.stop());
+        
+        // 语速控制事件
+        this.speedControl.addEventListener('input', (e) => {
+            this.speechRate = parseFloat(e.target.value);
+            this.speedDisplay.textContent = `${this.speechRate}x`;
+        });
         
         // 处理语音合成事件
         if (this.speechSynthesis.onvoiceschanged !== undefined) {
@@ -110,20 +119,22 @@ class ThaiAlphabetLearning {
     
     loadVoices() {
         this.voices = this.speechSynthesis.getVoices();
-        console.log('可用语音:', this.voices.map(v => `${v.name} (${v.lang})`));
+        console.log('可用语音:', this.voices.map(v => `${v.name} (${v.lang}) - ${v.gender || 'unknown'}`));
         
-        // 寻找泰语语音
+        // 寻找泰语男性语音，优先选择男性声音
         this.thaiVoice = this.voices.find(voice => 
-            voice.lang.includes('th') || 
-            voice.lang.includes('TH') ||
-            voice.name.toLowerCase().includes('thai')
+            (voice.lang.includes('th') || voice.lang.includes('TH') || voice.name.toLowerCase().includes('thai')) &&
+            (voice.name.toLowerCase().includes('male') || voice.name.toLowerCase().includes('man'))
+        ) || this.voices.find(voice => 
+            voice.lang.includes('th') || voice.lang.includes('TH') || voice.name.toLowerCase().includes('thai')
         );
         
-        // 寻找中文语音
+        // 寻找中文男性语音，优先选择男性声音
         this.chineseVoice = this.voices.find(voice => 
-            voice.lang.includes('zh') || 
-            voice.lang.includes('ZH') ||
-            voice.name.toLowerCase().includes('chinese')
+            (voice.lang.includes('zh') || voice.lang.includes('ZH') || voice.name.toLowerCase().includes('chinese')) &&
+            (voice.name.toLowerCase().includes('male') || voice.name.toLowerCase().includes('man'))
+        ) || this.voices.find(voice => 
+            voice.lang.includes('zh') || voice.lang.includes('ZH') || voice.name.toLowerCase().includes('chinese')
         );
         
         // 如果没有找到特定语音，使用默认语音
@@ -196,7 +207,7 @@ class ThaiAlphabetLearning {
             setTimeout(() => {
                 this.currentUtterance = new SpeechSynthesisUtterance(text);
                 this.currentUtterance.lang = lang;
-                this.currentUtterance.rate = 0.7;
+                this.currentUtterance.rate = this.speechRate;
                 this.currentUtterance.pitch = 1;
                 this.currentUtterance.volume = 1;
                 
