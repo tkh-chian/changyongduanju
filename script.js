@@ -648,13 +648,14 @@ class ThaiPhraseLearning {
                 if (isAndroid) {
                     // 安卓设备不设置voice，让系统自动选择
                     this.currentUtterance.voice = null;
-                    // 安卓设备使用更通用的语言代码
+                    // 安卓设备泰语使用英语发音，中文使用中文发音
                     if (lang.includes('th')) {
-                        this.currentUtterance.lang = 'th';  // 简化语言代码
+                        this.currentUtterance.lang = 'en-US';  // 泰语用英语发音
+                        console.log(`安卓设备泰语: ${text}, 使用英语发音`);
                     } else {
-                        this.currentUtterance.lang = 'zh';  // 简化语言代码
+                        this.currentUtterance.lang = 'zh-CN';  // 中文使用中文发音
+                        console.log(`安卓设备中文: ${text}, 使用中文发音`);
                     }
-                    console.log(`安卓设备播放: ${text}, 语言: ${this.currentUtterance.lang}`);
                 } else {
                     // 非安卓设备使用完整设置
                     this.currentUtterance.lang = lang;
@@ -827,15 +828,23 @@ document.addEventListener('DOMContentLoaded', () => {
             await new Promise(resolve => setTimeout(resolve, 500));
             
             try {
+                // 检测设备类型
+                const isAndroid = /Android/i.test(navigator.userAgent);
+                
                 // 测试中文
                 console.log('🇨🇳 测试中文语音');
-                await player.speak('你好', player.chineseVoice, 'zh');
+                await player.speak('你好', player.chineseVoice, 'zh-CN');
                 
                 await new Promise(resolve => setTimeout(resolve, 1000));
                 
                 // 测试泰语
                 console.log('🇹🇭 测试泰语语音');
-                await player.speak('สวัสดี', player.thaiVoice, 'th');
+                if (isAndroid) {
+                    console.log('📱 安卓设备：泰语将使用英语发音');
+                    await player.speak('สวัสดี', null, 'en-US');
+                } else {
+                    await player.speak('สวัสดี', player.thaiVoice, 'th-TH');
+                }
                 
                 console.log('✅ 语音测试完成');
                 
