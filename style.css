@@ -5,10 +5,16 @@
 }
 
 body {
-    font-family: 'Arial', sans-serif;
+    font-family: 'Arial', 'Microsoft YaHei', '微软雅黑', sans-serif;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    /* 微信浏览器兼容性 */
+    background: -webkit-linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: -moz-linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     min-height: 100vh;
     color: #333;
+    /* 防止微信浏览器缩放问题 */
+    -webkit-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
 }
 
 .container {
@@ -24,11 +30,16 @@ body {
     left: 0;
     right: 0;
     background: rgba(255, 255, 255, 0.95);
+    /* 微信浏览器不支持backdrop-filter，使用备用方案 */
     backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     padding: 15px 20px;
     box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
     z-index: 1000;
     border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    /* 确保在微信浏览器中正确显示 */
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .control-panel h1 {
@@ -251,10 +262,29 @@ body {
 .phrase-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    /* 微信浏览器兼容性 */
+    display: -ms-grid;
+    -ms-grid-columns: 1fr 1fr;
     gap: 15px;
     padding: 0 20px;
     max-height: 500px;
     overflow-y: auto;
+    /* 微信浏览器滚动优化 */
+    -webkit-overflow-scrolling: touch;
+}
+
+/* 微信浏览器网格布局备用方案 */
+@supports not (display: grid) {
+    .phrase-grid {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+    }
+    
+    .grid-phrase {
+        width: calc(50% - 10px);
+        margin-bottom: 15px;
+    }
 }
 
 .grid-phrase {
@@ -308,6 +338,26 @@ body {
 .grid-phrase.current .cat {
     color: #667eea;
     background: rgba(255, 255, 255, 0.9);
+}
+
+/* 微信浏览器特殊处理 */
+@media screen and (-webkit-min-device-pixel-ratio: 0) {
+    .phrase-grid {
+        display: -webkit-box;
+        display: -webkit-flex;
+        display: flex;
+        -webkit-flex-wrap: wrap;
+        flex-wrap: wrap;
+        -webkit-justify-content: space-between;
+        justify-content: space-between;
+    }
+    
+    .grid-phrase {
+        -webkit-box-flex: 0;
+        -webkit-flex: 0 0 calc(50% - 10px);
+        flex: 0 0 calc(50% - 10px);
+        margin-bottom: 15px;
+    }
 }
 
 /* 响应式设计 */
