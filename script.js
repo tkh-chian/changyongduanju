@@ -54,11 +54,13 @@ class ThaiAlphabetLearning {
         this.playTimeout = null;
         this.speechSynthesis = window.speechSynthesis;
         this.currentUtterance = null;
+        this.voices = [];
         
         this.initializeElements();
         this.setupEventListeners();
         this.renderLetterGrid();
         this.updateDisplay();
+        this.loadVoices();
     }
     
     initializeElements() {
@@ -77,15 +79,63 @@ class ThaiAlphabetLearning {
         this.stopBtn.addEventListener('click', () => this.stop());
         
         // 处理语音合成事件
-        this.speechSynthesis.addEventListener('voiceschanged', () => {
-            this.getVoices();
-        });
+        if (this.speechSynthesis.onvoiceschanged !== undefined) {
+            this.speechSynthesis.onvoiceschanged = () => this.loadVoices();
+        }
+        
+        // 添加用户交互检测
+        document.addEventListener('click', () => this.enableAudio(), { once: true });
+        document.addEventListener('touchstart', () => this.enableAudio(), { once: true });
     }
     
-    getVoices() {
-        const voices = this.speechSynthesis.getVoices();
-        this.thaiVoice = voices.find(voice => voice.lang.includes('th')) || voices[0];
-        this.chineseVoice = voices.find(voice => voice.lang.includes('zh')) || voices[0];
+    enableAudio() {
+        // 创建一个静音的音频上下文来启用音频
+        if (window.AudioContext || window.webkitAudioContext) {
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            const audioContext = new AudioContext();
+            if (audioContext.state === 'suspended') {
+                audioContext.resume();
+            }
+        }
+        
+        // 测试语音合成
+        this.testSpeech();
+    }
+    
+    testSpeech() {
+        const testUtterance = new SpeechSynthesisUtterance('');
+        testUtterance.volume = 0;
+        this.speechSynthesis.speak(testUtterance);
+    }
+    
+    loadVoices() {
+        this.voices = this.speechSynthesis.getVoices();
+        console.log('可用语音:', this.voices.map(v => `${v.name} (${v.lang})`));
+        
+        // 寻找泰语语音
+        this.thaiVoice = this.voices.find(voice => 
+            voice.lang.includes('th') || 
+            voice.lang.includes('TH') ||
+            voice.name.toLowerCase().includes('thai')
+        );
+        
+        // 寻找中文语音
+        this.chineseVoice = this.voices.find(voice => 
+            voice.lang.includes('zh') || 
+            voice.lang.includes('ZH') ||
+            voice.name.toLowerCase().includes('chinese')
+        );
+        
+        // 如果没有找到特定语音，使用默认语音
+        if (!this.thaiVoice) {
+            this.thaiVoice = this.voices[0];
+        }
+        if (!this.chineseVoice) {
+            this.chineseVoice = this.voices[0];
+        }
+        
+        console.log('泰语语音:', this.thaiVoice?.name);
+        console.log('中文语音:', this.chineseVoice?.name);
     }
     
     renderLetterGrid() {
@@ -138,30 +188,39 @@ class ThaiAlphabetLearning {
     }
     
     async speak(text, voice, lang = 'th-TH') {
-        return new Promise((resolve, reject) => {
-            if (this.currentUtterance) {
-                this.speechSynthesis.cancel();
-            }
+        return new Promise((resolve) => {
+            // 取消当前播放
+            this.speechSynthesis.cancel();
             
-            this.currentUtterance = new SpeechSynthesisUtterance(text);
-            this.currentUtterance.lang = lang;
-            this.currentUtterance.rate = 0.8;
-            this.currentUtterance.pitch = 1;
-            
-            if (voice) {
-                this.currentUtterance.voice = voice;
-            }
-            
-            this.currentUtterance.onend = () => {
-                resolve();
-            };
-            
-            this.currentUtterance.onerror = (event) => {
-                console.error('Speech synthesis error:', event);
-                resolve(); // 继续执行，不要因为语音错误而停止
-            };
-            
-            this.speechSynthesis.speak(this.currentUtterance);
+            // 等待一小段时间确保取消完成
+            setTimeout(() => {
+                this.currentUtterance = new SpeechSynthesisUtterance(text);
+                this.currentUtterance.lang = lang;
+                this.currentUtterance.rate = 0.7;
+                this.currentUtterance.pitch = 1;
+                this.currentUtterance.volume = 1;
+                
+                if (voice) {
+                    this.currentUtterance.voice = voice;
+                }
+                
+                this.currentUtterance.onend = () => {
+                    console.log(`播放完成: ${text}`);
+                    resolve();
+                };
+                
+                this.currentUtterance.onerror = (event) => {
+                    console.error('语音播放错误:', event);
+                    resolve(); // 继续执行
+                };
+                
+                this.currentUtterance.onstart = () => {
+                    console.log(`开始播放: ${text}`);
+                };
+                
+                console.log(`准备播放: ${text}, 语音: ${voice?.name || '默认'}, 语言: ${lang}`);
+                this.speechSynthesis.speak(this.currentUtterance);
+            }, 100);
         });
     }
     
@@ -171,21 +230,31 @@ class ThaiAlphabetLearning {
         const currentLetter = thaiLetters[this.currentIndex];
         this.currentLetterCard.classList.add('active');
         
+        console.log(`开始播放字母: ${currentLetter.thai}`);
+        
         try {
             // 播放泰语字母 3 次
             for (let i = 0; i < 3; i++) {
                 if (!this.isPlaying || this.isPaused) return;
+                console.log(`播放泰语第 ${i + 1} 次: ${currentLetter.thai}`);
                 await this.speak(currentLetter.thai, this.thaiVoice, 'th-TH');
-                if (i < 2) await this.delay(500); // 短暂停顿
+                if (i < 2 && this.isPlaying && !this.isPaused) {
+                    await this.delay(500);
+                }
             }
             
-            await this.delay(800); // 稍长停顿
+            if (this.isPlaying && !this.isPaused) {
+                await this.delay(800);
+            }
             
             // 播放中文意思 3 次
             for (let i = 0; i < 3; i++) {
                 if (!this.isPlaying || this.isPaused) return;
+                console.log(`播放中文第 ${i + 1} 次: ${currentLetter.meaning}`);
                 await this.speak(currentLetter.meaning, this.chineseVoice, 'zh-CN');
-                if (i < 2) await this.delay(500); // 短暂停顿
+                if (i < 2 && this.isPlaying && !this.isPaused) {
+                    await this.delay(500);
+                }
             }
             
         } catch (error) {
@@ -195,7 +264,7 @@ class ThaiAlphabetLearning {
         this.currentLetterCard.classList.remove('active');
         
         if (this.isPlaying && !this.isPaused) {
-            await this.delay(1000); // 字母间停顿
+            await this.delay(1000);
             this.nextLetter();
         }
     }
@@ -223,11 +292,14 @@ class ThaiAlphabetLearning {
         
         if (this.isPlaying && !this.isPaused) {
             this.speechSynthesis.cancel();
-            this.playCurrentLetter();
+            setTimeout(() => {
+                this.playCurrentLetter();
+            }, 100);
         }
     }
     
     play() {
+        console.log('开始播放');
         this.isPlaying = true;
         this.isPaused = false;
         
@@ -235,11 +307,16 @@ class ThaiAlphabetLearning {
         this.pauseBtn.disabled = false;
         this.stopBtn.disabled = false;
         
-        this.getVoices(); // 确保获取到语音
+        // 确保语音已加载
+        if (this.voices.length === 0) {
+            this.loadVoices();
+        }
+        
         this.playCurrentLetter();
     }
     
     pause() {
+        console.log('暂停播放');
         this.isPaused = true;
         this.speechSynthesis.cancel();
         
@@ -254,6 +331,7 @@ class ThaiAlphabetLearning {
     }
     
     stop() {
+        console.log('停止播放');
         this.isPlaying = false;
         this.isPaused = false;
         this.speechSynthesis.cancel();
@@ -275,20 +353,15 @@ class ThaiAlphabetLearning {
 
 // 页面加载完成后初始化
 document.addEventListener('DOMContentLoaded', () => {
-    new ThaiAlphabetLearning();
+    console.log('页面加载完成，初始化泰语学习应用');
+    window.thaiLearning = new ThaiAlphabetLearning();
 });
 
-// 处理页面可见性变化，暂停播放当页面不可见时
+// 处理页面可见性变化
 document.addEventListener('visibilitychange', () => {
     if (document.hidden && window.thaiLearning) {
-        // 页面隐藏时暂停
         if (window.thaiLearning.isPlaying && !window.thaiLearning.isPaused) {
             window.thaiLearning.pause();
         }
     }
-});
-
-// 保存实例到全局变量以便调试
-document.addEventListener('DOMContentLoaded', () => {
-    window.thaiLearning = new ThaiAlphabetLearning();
 });
