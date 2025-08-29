@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>移动端音频/语音诊断</title>
+<style>
+  body { font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial; padding:16px; background:#f7f7fb; }
+  h1 { font-size:18px; margin:0 0 12px; }
+  .card { background:#fff; border-radius:12px; padding:16px; box-shadow:0 6px 20px rgba(0,0,0,.06); margin-bottom:12px; }
+  .btns { display:flex; gap:10px; flex-wrap:wrap; margin:8px 0 0; }
+  button { padding:10px 14px; border:0; border-radius:10px; font-weight:600; cursor:pointer; }
+  .primary { background:#4caf50; color:#fff; }
+  .warn { background:#ff9800; color:#fff; }
+  .stop { background:#f44336; color:#fff; }
+  #log { font-family: ui-monospace,Consolas,monospace; font-size:13px; line-height:1.5; white-space:pre-wrap; }
+  .muted { color:#666; font-size:13px; }
+  .ok { color:#2e7d32; }
+  .err { color:#c62828; }
+</style>
+</head>
+<body>
+  <h1>移动端音频/语音诊断</h1>
+
+  <div class="card">
+    <div id="env"></div>
+    <div class="muted" id="tips"></div>
+    <div class="btns">
+      <button class="primary" id="run">开始测试</button>
+      <button class="warn" id="rerun">再测一次</button>
+      <button class="stop" id="stop">停止/清理</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div id="log"></div>
+  </div>
+
+<script>
+(function(){
+  const logEl = document.getElementById('log');
+  const envEl = document.getElementById('env');
+  const tipsEl = document.getElementById('tips');
+  const ua = navigator.userAgent || '';
+  const isWeChat = /MicroMessenger/i.test(ua);
+  const isAndroid = /Android/i.test(ua);
+  const isIOS = /iPhone|iPad|iPod/i.test(ua);
+  const isHTTPS = location.protocol === 'https:';
+  let audioCtx = null;
+
+  function log(msg, cls){
+    const line = document.createElement('div');
+    if(cls) line.className = cls;
+    line.textContent = msg;
+    logEl.appendChild(line);
+    // keep last lines visible
+    requestAnimationFrame(() => { window.scrollTo(0, document.body.scrollHeight); });
+  }
+  function hr(){ log('--------------------------------'); }
+
+  function renderEnv(){
+    envEl.innerHTML =
+      '<div><b>协议:</b> '+location.protocol+'  <b>平台:</b> '+(navigator.platform||'')+'</div>' +
+      '<div><b>语言:</b> '+(navigator.language||'')+'  <b>UA:</b> '+ua.substring(0,90)+'...</div>' +
+      '<div><b>WeChat:</b> '+isWeChat+'  <b>Android:</b> '+isAndroid+'  <b>iOS:</b> '+isIOS+'</div>';
+    const tip = [];
+    if(!isHTTPS) tip.push('当前为 HTTP，本地调试正常；微信内置浏览器可能限制自动播放，需要手动点击按钮。');
+    if(isWeChat) tip.push('检测到微信内置浏览器，可能对语音合成/音频有额外限制，建议用系统浏览器测试对比。');
+    tipsEl.textContent = tip.join(' ');
+  }
+
+  async function unlockAudio(){
+    if(!window.AudioContext && !window.webkitAudioContext) return { ok:false, reason:'no AudioContext' };
+    if(!audioCtx){
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      audioCtx = new Ctx();
+    }
+    try{
+      if(audioCtx.state === 'suspended'){
+        await audioCtx.resume();
+      }
+      // 短哔声（不依赖外部资源）
+      const o = audioCtx.createOscillator();
+      const g = audioCtx.createGain();
+      o.type = 'sine';
+      o.frequency.value = 880;
+      g.gain.value = 0.0001; // 很小音量避免扰民，但可解锁音频
+      o.connect(g); g.connect(audioCtx.destination);
+      o.start();
+      await new Promise(r=>setTimeout(r,160));
+      o.stop(); o.disconnect(); g.disconnect();
+      return { ok:true };
+    }catch(e){
+      return { ok:false, reason: e.message || String(e) };
+    }
+  }
+
+  function waitVoices(timeout=1500){
+    return new Promise(resolve=>{
+      const got = speechSynthesis.getVoices();
+      if(got && got.length){ resolve(got); return; }
+      let done = false;
+      const onchg = ()=>{
+        if(done) return;
+        const vs = speechSynthesis.getVoices();
+        if(vs && vs.length){ done=true; speechSynthesis.onvoiceschanged=null; resolve(vs); }
+      };
+      if('onvoiceschanged' in speechSynthesis){
+        speechSynthesis.onvoiceschanged = onchg;
+      }
+      setTimeout(()=>{ if(!done){ done=true; speechSynthesis.onvoiceschanged=null; resolve(speechSynthesis.getVoices()||[]); } }, timeout);
+    });
+  }
+
+  function listVoicesBrief(vs){
+    return vs.slice(0,10).map(v=>`${v.name} (${v.lang}${v.default?'*':''})`).join(' | ');
+  }
+
+  function pickVoice(vs, preferLangs){
+    for(const p of preferLangs){
+      const exact = vs.find(v=>v.lang.toLowerCase()===p.toLowerCase());
+      if(exact) return exact;
+    }
+    for(const p of preferLangs){
+      const pref = vs.find(v=>v.lang.toLowerCase().startsWith(p.split('-')[0].toLowerCase()));
+      if(pref) return pref;
+    }
+    return vs.find(v=>v.default) || vs[0] || null;
+  }
+
+  function speak(text, lang, voice){
+    return new Promise(resolve=>{
+      try{
+        speechSynthesis.cancel();
+        const u = new SpeechSynthesisUtterance(text);
+        if(voice){ u.voice = voice; u.lang = voice.lang; } else { u.lang = lang; }
+        u.rate = 0.9; u.pitch = 1.0; u.volume = 1.0;
+        let started = false;
+        u.onstart = ()=>{ started = true; };
+        u.onend = ()=>{ resolve({ ok:true, started }); };
+        u.onerror = (e)=>{ resolve({ ok:false, err: e.error||'unknown' }); };
+        speechSynthesis.speak(u);
+        setTimeout(()=>{ // 5s保护
+          if(speechSynthesis.speaking){ speechSynthesis.cancel(); resolve({ ok:false, err:'timeout' }); }
+        }, 5000);
+      }catch(e){
+        resolve({ ok:false, err: e.message||String(e) });
+      }
+    });
+  }
+
+  async function runTests(){
+    logEl.innerHTML = '';
+    log('开始测试（请确保是手动点击触发）');
+    hr();
+
+    // 1) 解锁音频
+    const a = await unlockAudio();
+    if(a.ok) log('WebAudio 响应：OK', 'ok'); else log('WebAudio 失败：'+a.reason, 'err');
+
+    // 2) 语音列表
+    if(!('speechSynthesis' in window)){
+      log('speechSynthesis 不可用（浏览器不支持）', 'err');
+      return;
+    }
+    const voices = await waitVoices(1800);
+    log('设备语音总数：'+voices.length);
+    if(voices.length) log('样例（最多10条）：'+listVoicesBrief(voices));
+
+    // 3) 中文测试
+    const zhVoice = pickVoice(voices, ['zh-CN','zh']);
+    const zh = await speak('你好，语音测试。', 'zh-CN', zhVoice);
+    if(zh.ok) log('中文播放：成功', 'ok'); else log('中文播放：失败 '+(zh.err||''), 'err');
+
+    // 4) 泰语测试
+    const thVoice = pickVoice(voices, ['th-TH','th']);
+    const th = await speak('สวัสดี', 'th-TH', thVoice);
+    if(th.ok) log('泰语播放：成功', 'ok'); else log('泰语播放：失败 '+(th.err||''), 'err');
+
+    hr();
+    log('总结：请把“设备语音总数/中文播放/泰语播放”三行结果发我。');
+    if(isWeChat) log('提示：当前在微信内置浏览器，可能限制语音，请也用系统浏览器再测一次对比。');
+  }
+
+  function stopAll(){
+    try{ speechSynthesis.cancel(); }catch(e){}
+    try{ if(audioCtx && audioCtx.state!=='closed'){ audioCtx.close(); } }catch(e){}
+    audioCtx = null;
+    log('已停止/清理。');
+  }
+
+  document.getElementById('run').onclick = runTests;
+  document.getElementById('rerun').onclick = runTests;
+  document.getElementById('stop').onclick = stopAll;
+
+  renderEnv();
+})();
+</script>
+</body>
+</html>
