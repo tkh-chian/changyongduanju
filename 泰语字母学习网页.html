@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>泰语字母学习 - 完整版字母表</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Noto Sans SC', 'Noto Sans Thai', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            background: linear-gradient(135deg, #FF6B6B, #4ECDC4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .summary {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            border-left: 5px solid #4ECDC4;
+        }
+        
+        .alphabet-section {
+            margin-bottom: 40px;
+        }
+        
+        .section-title {
+            font-size: 1.8rem;
+            color: #495057;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #4ECDC4;
+        }
+        
+        .alphabet-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .letter-card {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .letter-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            border-color: #4ECDC4;
+        }
+        
+        .thai-letter {
+            font-size: 3rem;
+            font-family: 'Noto Sans Thai', sans-serif;
+            color: #FF6B6B;
+            margin-bottom: 10px;
+        }
+        
+        .pronunciation {
+            font-size: 1.2rem;
+            color: #495057;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+        
+        .english-name {
+            font-size: 0.9rem;
+            color: #6c757d;
+            font-style: italic;
+        }
+        
+        .vowel-section {
+            background: #fff3cd;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .tone-section {
+            background: #d1ecf1;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .special-section {
+            background: #f8d7da;
+            padding: 20px;
+            border-radius: 15px;
+        }
+        
+        .audio-btn {
+            background: #4ECDC4;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            padding: 5px 15px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            margin-top: 5px;
+        }
+        
+        .audio-btn:hover {
+            background: #45B7D1;
+        }
+        
+        .play-controls {
+            background: linear-gradient(135deg, #FF6B6B, #4ECDC4);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            text-align: center;
+            color: white;
+        }
+        
+        .play-btn {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 2px solid white;
+            border-radius: 25px;
+            padding: 12px 25px;
+            font-size: 1rem;
+            cursor: pointer;
+            margin: 0 10px;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+        
+        .play-btn:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-2px);
+        }
+        
+        .play-btn.active {
+            background: white;
+            color: #FF6B6B;
+        }
+        
+        .current-playing {
+            border: 3px solid #FF6B6B !important;
+            background: linear-gradient(135deg, #FF6B6B, #FF8E8E) !important;
+            color: white !important;
+            animation: pulse 1s infinite;
+        }
+        
+        .current-playing .thai-letter {
+            color: white !important;
+        }
+        
+        .speed-control {
+            margin-top: 15px;
+        }
+        
+        .speed-btn {
+            background: rgba(255,255,255,0.1);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 15px;
+            padding: 5px 15px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            margin: 0 5px;
+            transition: all 0.3s ease;
+        }
+        
+        .speed-btn:hover, .speed-btn.active {
+            background: rgba(255,255,255,0.3);
+        }
+        
+        @media (max-width: 768px) {
+            .alphabet-grid {
+                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            }
+            
+            .thai-letter {
+                font-size: 2.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🇹🇭 泰语字母学习大全</h1>
+            <p>完整的泰语字母表与发音指南</p>
+        </div>
+        
+        <div class="summary">
+            <h3>📋 泰语字母总结</h3>
+            <p><strong>泰语共有 76 个字母：</strong></p>
+            <ul style="margin-top: 10px; margin-left: 20px;">
+                <li><strong>辅音字母：44个</strong></li>
+                <li><strong>元音符号：32个</strong></li>
+            </ul>
+            <p style="margin-top: 10px;">此外还有4个声调符号和2个特殊符号。</p>
+        </div>
+        
+        <!-- 循环播放控制 -->
+        <div class="play-controls">
+            <h3>🎵 循环播放控制</h3>
+            <p>自动播放所有字母发音，帮助你快速熟悉泰语字母</p>
+            <div style="margin: 20px 0;">
+                <button class="play-btn" id="playAllBtn" onclick="startPlayAll()">▶️ 播放全部</button>
+                <button class="play-btn" id="playConsonantsBtn" onclick="startPlayConsonants()">🔤 播放辅音</button>
+                <button class="play-btn" id="playVowelsBtn" onclick="startPlayVowels()">🎵 播放元音</button>
+                <button class="play-btn" id="pauseBtn" onclick="pausePlay()" style="display: none;">⏸️ 暂停</button>
+                <button class="play-btn" id="stopBtn" onclick="stopPlay()" style="display: none;">⏹️ 停止</button>
+            </div>
+            <div class="speed-control">
+                <span>播放速度：</span>
+                <button class="speed-btn" onclick="setSpeed(0.5)">0.5x</button>
+                <button class="speed-btn active" onclick="setSpeed(1)">1x</button>
+                <button class="speed-btn" onclick="setSpeed(1.5)">1.5x</button>
+                <button class="speed-btn" onclick="setSpeed(2)">2x</button>
+            </div>
+            <div style="margin-top: 15px; font-size: 0.9rem;">
+                <span id="playStatus">准备播放...</span>
+            </div>
+        </div>
+        
+        <!-- 辅音字母 -->
+        <div class="alphabet-section">
+            <h2 class="section-title">🔤 辅音字母 (44个)</h2>
+            <div class="alphabet-grid" id="consonants">
+                <!-- 辅音字母将通过JavaScript生成 -->
+            </div>
+        </div>
+        
+        <!-- 元音符号 -->
+        <div class="vowel-section">
+            <h2 class="section-title">🎵 元音符号 (32个)</h2>
+            <div class="alphabet-grid" id="vowels">
+                <!-- 元音符号将通过JavaScript生成 -->
+            </div>
+        </div>
+        
+        <!-- 声调符号 -->
+        <div class="tone-section">
+            <h2 class="section-title">🎼 声调符号 (4个)</h2>
+            <div class="alphabet-grid" id="tones">
+                <!-- 声调符号将通过JavaScript生成 -->
+            </div>
+        </div>
+        
+        <!-- 特殊符号 -->
+        <div class="special-section">
+            <h2 class="section-title">✨ 特殊符号 (2个)</h2>
+            <div class="alphabet-grid" id="specials">
+                <!-- 特殊符号将通过JavaScript生成 -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 泰语辅音字母数据
+        const consonants = [
+            {thai: 'ก', pronunciation: 'gɔɔ gài', english: 'ko kai', meaning: '(鸡)'},
+            {thai: 'ข', pronunciation: 'kɔɔ kàai', english: 'kho khai', meaning: '(蛋)'},
+            {thai: 'ฃ', pronunciation: 'kɔɔ kùat', english: 'kho khuat', meaning: '(瓶)'},
+            {thai: 'ค', pronunciation: 'kɔɔ kwaai', english: 'kho khwai', meaning: '(水牛)'},
+            {thai: 'ฅ', pronunciation: 'kɔɔ kon', english: 'kho khon', meaning: '(人)'},
+            {thai: 'ฆ', pronunciation: 'kɔɔ rá-kang', english: 'kho rakhang', meaning: '(钟)'},
+            {thai: 'ง', pronunciation: 'ngɔɔ nguu', english: 'ngo ngu', meaning: '(蛇)'},
+            {thai: 'จ', pronunciation: 'jɔɔ jaan', english: 'cho chan', meaning: '(盘子)'},
+            {thai: 'ฉ', pronunciation: 'chɔɔ chìng', english: 'cho ching', meaning: '(钹)'},
+            {thai: 'ช', pronunciation: 'chɔɔ cháang', english: 'cho chang', meaning: '(象)'},
+            {thai: 'ซ', pronunciation: 'sɔɔ sôo', english: 'so so', meaning: '(链子)'},
+            {thai: 'ฌ', pronunciation: 'chɔɔ chəə', english: 'cho choe', meaning: '(树)'},
+            {thai: 'ญ', pronunciation: 'yɔɔ yǐng', english: 'yo ying', meaning: '(女人)'},
+            {thai: 'ฎ', pronunciation: 'dɔɔ chà-daa', english: 'do chada', meaning: '(王冠)'},
+            {thai: 'ฏ', pronunciation: 'tɔɔ pa-taàk', english: 'to patak', meaning: '(鱼叉)'},
+            {thai: 'ฐ', pronunciation: 'thɔɔ thăan', english: 'tho than', meaning: '(底座)'},
+            {thai: 'ฑ', pronunciation: 'thɔɔ mon-thoo', english: 'tho montho', meaning: '(夫人)'},
+            {thai: 'ฒ', pronunciation: 'thɔɔ phuu-thâo', english: 'tho phuthao', meaning: '(老人)'},
+            {thai: 'ณ', pronunciation: 'nɔɔ neen', english: 'no nen', meaning: '(沙弥)'},
+            {thai: 'ด', pronunciation: 'dɔɔ dèk', english: 'do dek', meaning: '(孩子)'},
+            {thai: 'ต', pronunciation: 'tɔɔ tao', english: 'to tao', meaning: '(乌龟)'},
+            {thai: 'ถ', pronunciation: 'thɔɔ thǔng', english: 'tho thung', meaning: '(袋子)'},
+            {thai: 'ท', pronunciation: 'thɔɔ tha-hǎan', english: 'tho thahan', meaning: '(士兵)'},
+            {thai: 'ธ', pronunciation: 'thɔɔ thong', english: 'tho thong', meaning: '(旗帜)'},
+            {thai: 'น', pronunciation: 'nɔɔ nuu', english: 'no nu', meaning: '(老鼠)'},
+            {thai: 'บ', pronunciation: 'bɔɔ bai-máai', english: 'bo baimai', meaning: '(叶子)'},
+            {thai: 'ป', pronunciation: 'pɔɔ plaa', english: 'po pla', meaning: '(鱼)'},
+            {thai: 'ผ', pronunciation: 'phɔɔ phǔng', english: 'pho phueng', meaning: '(蜜蜂)'},
+            {thai: 'ฝ', pronunciation: 'fɔɔ faa', english: 'fo fa', meaning: '(盖子)'},
+            {thai: 'พ', pronunciation: 'phɔɔ phaan', english: 'pho phan', meaning: '(托盘)'},
+            {thai: 'ฟ', pronunciation: 'fɔɔ fan', english: 'fo fan', meaning: '(牙齿)'},
+            {thai: 'ภ', pronunciation: 'phɔɔ sǎm-phao', english: 'pho samphao', meaning: '(帆船)'},
+            {thai: 'ม', pronunciation: 'mɔɔ máa', english: 'mo ma', meaning: '(马)'},
+            {thai: 'ย', pronunciation: 'yɔɔ yàk', english: 'yo yak', meaning: '(夜叉)'},
+            {thai: 'ร', pronunciation: 'rɔɔ rɯa', english: 'ro ruea', meaning: '(船)'},
+            {thai: 'ล', pronunciation: 'lɔɔ ling', english: 'lo ling', meaning: '(猴子)'},
+            {thai: 'ว', pronunciation: 'wɔɔ wɛɛn', english: 'wo waen', meaning: '(戒指)'},
+            {thai: 'ศ', pronunciation: 'sɔɔ sǎa-laa', english: 'so sala', meaning: '(凉亭)'},
+            {thai: 'ษ', pronunciation: 'sɔɔ rɯɯ-sǐi', english: 'so ruesri', meaning: '(隐士)'},
+            {thai: 'ส', pronunciation: 'sɔɔ sɯ̌a', english: 'so suea', meaning: '(老虎)'},
+            {thai: 'ห', pronunciation: 'hɔɔ hìip', english: 'ho hip', meaning: '(盒子)'},
+            {thai: 'ฬ', pronunciation: 'lɔɔ jù-laa', english: 'lo chula', meaning: '(风筝)'},
+            {thai: 'อ', pronunciation: 'ɔɔ àang', english: 'o ang', meaning: '(盆)'},
+            {thai: 'ฮ', pronunciation: 'hɔɔ nók-hûuk', english: 'ho nokhuk', meaning: '(猫头鹰)'}
+        ];
+
+        // 泰语元音符号数据
+        const vowels = [
+            {thai: 'ะ', pronunciation: 'à', english: 'a (short)'},
+            {thai: 'า', pronunciation: 'aa', english: 'a (long)'},
+            {thai: 'ิ', pronunciation: 'ì', english: 'i (short)'},
+            {thai: 'ี', pronunciation: 'ii', english: 'i (long)'},
+            {thai: 'ึ', pronunciation: 'ɯ̀', english: 'ue (short)'},
+            {thai: 'ื', pronunciation: 'ɯɯ', english: 'ue (long)'},
+            {thai: 'ุ', pronunciation: 'ù', english: 'u (short)'},
+            {thai: 'ู', pronunciation: 'uu', english: 'u (long)'},
+            {thai: 'เ', pronunciation: 'ee', english: 'e (long)'},
+            {thai: 'แ', pronunciation: 'ɛɛ', english: 'ae (long)'},
+            {thai: 'โ', pronunciation: 'oo', english: 'o (long)'},
+            {thai: 'ใ', pronunciation: 'ai', english: 'ai'},
+            {thai: 'ไ', pronunciation: 'ai', english: 'ai'},
+            {thai: 'ำ', pronunciation: 'am', english: 'am'},
+            {thai: 'เะ', pronunciation: 'è', english: 'e (short)'},
+            {thai: 'แะ', pronunciation: 'ɛ̀', english: 'ae (short)'},
+            {thai: 'โะ', pronunciation: 'ò', english: 'o (short)'},
+            {thai: 'เา', pronunciation: 'ao', english: 'ao'},
+            {thai: 'ัว', pronunciation: 'ua', english: 'ua'},
+            {thai: 'วะ', pronunciation: 'ùa', english: 'ua (short)'},
+            {thai: 'เอะ', pronunciation: 'èʔ', english: 'oe (short)'},
+            {thai: 'เอ', pronunciation: 'əə', english: 'oe (long)'},
+            {thai: 'เียะ', pronunciation: 'ìa', english: 'ia (short)'},
+            {thai: 'เีย', pronunciation: 'ia', english: 'ia (long)'},
+            {thai: 'เือะ', pronunciation: 'ɯ̀a', english: 'uea (short)'},
+            {thai: 'เือ', pronunciation: 'ɯa', english: 'uea (long)'},
+            {thai: 'ัวะ', pronunciation: 'ùa', english: 'ua (short)'},
+            {thai: 'เิ', pronunciation: 'əə', english: 'oe'},
+            {thai: 'เอา', pronunciation: 'ao', english: 'ao'},
+            {thai: 'ไอ', pronunciation: 'ai', english: 'ai'},
+            {thai: 'ใอ', pronunciation: 'ai', english: 'ai'},
+            {thai: 'เอย', pronunciation: 'əəi', english: 'oei'}
+        ];
+
+        // 声调符号数据
+        const tones = [
+            {thai: '่', pronunciation: 'mái èek', english: 'mai ek (low tone)'},
+            {thai: '้', pronunciation: 'mái thoo', english: 'mai tho (falling tone)'},
+            {thai: '๊', pronunciation: 'mái trii', english: 'mai tri (high tone)'},
+            {thai: '๋', pronunciation: 'mái jàt-tà-waa', english: 'mai chattawa (rising tone)'}
+        ];
+
+        // 特殊符号数据
+        const specials = [
+            {thai: '์', pronunciation: 'gaa-ran', english: 'garan (silent letter)'},
+            {thai: 'ๆ', pronunciation: 'mái-yá-mók', english: 'maiyamok (repetition)'}
+        ];
+        
+        // 循环播放相关变量
+        let isPlaying = false;
+        let currentPlayIndex = 0;
+        let currentPlayList = [];
+        let playSpeed = 1;
+        let playInterval;
+        let currentHighlightedCard = null;
+
+        // 生成字母卡片
+        function generateLetterCard(letter) {
+            return `
+                <div class="letter-card" onclick="pronounce('${letter.thai}')">
+                    <div class="thai-letter">${letter.thai}</div>
+                    <div class="pronunciation">${letter.pronunciation}</div>
+                    <div class="english-name">${letter.english}</div>
+                    ${letter.meaning ? `<div class="english-name">${letter.meaning}</div>` : ''}
+                    <button class="audio-btn" onclick="pronounce('${letter.thai}')">🔊 发音</button>
+                </div>
+            `;
+        }
+
+        // 页面加载时生成所有字母
+        document.addEventListener('DOMContentLoaded', function() {
+            // 生成辅音字母
+            document.getElementById('consonants').innerHTML = 
+                consonants.map(generateLetterCard).join('');
+            
+            // 生成元音符号
+            document.getElementById('vowels').innerHTML = 
+                vowels.map(generateLetterCard).join('');
+            
+            // 生成声调符号
+            document.getElementById('tones').innerHTML = 
+                tones.map(generateLetterCard).join('');
+            
+            // 生成特殊符号
+            document.getElementById('specials').innerHTML = 
+                specials.map(generateLetterCard).join('');
+        });
+
+        // 发音功能
+        function pronounce(letter, autoNext = false) {
+            if ('speechSynthesis' in window) {
+                // 停止当前播放
+                speechSynthesis.cancel();
+                
+                const utterance = new SpeechSynthesisUtterance(letter);
+                utterance.lang = 'th-TH';
+                utterance.rate = 0.7 * playSpeed;
+                utterance.volume = 0.8;
+                
+                // 播放结束后的回调
+                utterance.onend = function() {
+                    if (autoNext && isPlaying) {
+                        setTimeout(() => {
+                            playNext();
+                        }, 500 / playSpeed); // 间隔时间也根据速度调整
+                    }
+                };
+                
+                speechSynthesis.speak(utterance);
+            } else {
+                alert(`发音: ${letter}`);
+                if (autoNext && isPlaying) {
+                    setTimeout(() => {
+                        playNext();
+                    }, 1000 / playSpeed);
+                }
+            }
+        }
+        
+        // 开始播放所有字母
+        function startPlayAll() {
+            currentPlayList = [...consonants, ...vowels, ...tones, ...specials];
+            startPlay('播放全部字母');
+        }
+        
+        // 开始播放辅音
+        function startPlayConsonants() {
+            currentPlayList = consonants;
+            startPlay('播放辅音字母');
+        }
+        
+        // 开始播放元音
+        function startPlayVowels() {
+            currentPlayList = [...vowels, ...tones, ...specials];
+            startPlay('播放元音符号');
+        }
+        
+        // 开始播放
+        function startPlay(statusText) {
+            if (currentPlayList.length === 0) return;
+            
+            isPlaying = true;
+            currentPlayIndex = 0;
+            
+            // 更新UI
+            updatePlayButtons(true);
+            updatePlayStatus(statusText);
+            
+            // 开始播放第一个
+            playCurrentLetter();
+        }
+        
+        // 播放当前字母
+        function playCurrentLetter() {
+            if (!isPlaying || currentPlayIndex >= currentPlayList.length) {
+                stopPlay();
+                return;
+            }
+            
+            const currentLetter = currentPlayList[currentPlayIndex];
+            
+            // 高亮当前播放的字母
+            highlightCurrentLetter(currentLetter.thai);
+            
+            // 更新状态
+            updatePlayStatus(`正在播放: ${currentLetter.thai} (${currentPlayIndex + 1}/${currentPlayList.length})`);
+            
+            // 播放发音
+            pronounce(currentLetter.thai, true);
+        }
+        
+        // 播放下一个
+        function playNext() {
+            if (!isPlaying) return;
+            
+            currentPlayIndex++;
+            playCurrentLetter();
+        }
+        
+        // 暂停播放
+        function pausePlay() {
+            isPlaying = false;
+            speechSynthesis.cancel();
+            updatePlayButtons(false);
+            updatePlayStatus('播放已暂停');
+        }
+        
+        // 停止播放
+        function stopPlay() {
+            isPlaying = false;
+            speechSynthesis.cancel();
+            currentPlayIndex = 0;
+            
+            // 清除高亮
+            if (currentHighlightedCard) {
+                currentHighlightedCard.classList.remove('current-playing');
+                currentHighlightedCard = null;
+            }
+            
+            updatePlayButtons(false);
+            updatePlayStatus('播放已停止');
+        }
+        
+        // 设置播放速度
+        function setSpeed(speed) {
+            playSpeed = speed;
+            
+            // 更新速度按钮状态
+            document.querySelectorAll('.speed-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            updatePlayStatus(`播放速度设置为 ${speed}x`);
+        }
+        
+        // 高亮当前播放的字母
+        function highlightCurrentLetter(letter) {
+            // 清除之前的高亮
+            if (currentHighlightedCard) {
+                currentHighlightedCard.classList.remove('current-playing');
+            }
+            
+            // 找到当前字母的卡片并高亮
+            const cards = document.querySelectorAll('.letter-card');
+            cards.forEach(card => {
+                const thaiLetter = card.querySelector('.thai-letter');
+                if (thaiLetter && thaiLetter.textContent === letter) {
+                    card.classList.add('current-playing');
+                    currentHighlightedCard = card;
+                    
+                    // 滚动到当前播放的字母
+                    card.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'center'
+                    });
+                }
+            });
+        }
+        
+        // 更新播放按钮状态
+        function updatePlayButtons(playing) {
+            const playBtns = ['playAllBtn', 'playConsonantsBtn', 'playVowelsBtn'];
+            const controlBtns = ['pauseBtn', 'stopBtn'];
+            
+            playBtns.forEach(id => {
+                const btn = document.getElementById(id);
+                if (btn) {
+                    btn.style.display = playing ? 'none' : 'inline-block';
+                    btn.classList.remove('active');
+                }
+            });
+            
+            controlBtns.forEach(id => {
+                const btn = document.getElementById(id);
+                if (btn) {
+                    btn.style.display = playing ? 'inline-block' : 'none';
+                }
+            });
+        }
+        
+        // 更新播放状态文本
+        function updatePlayStatus(text) {
+            const statusElement = document.getElementById('playStatus');
+            if (statusElement) {
+                statusElement.textContent = text;
+            }
+        }
+
+        // 添加搜索功能
+        function searchLetter() {
+            const searchTerm = document.getElementById('search').value.toLowerCase();
+            const cards = document.querySelectorAll('.letter-card');
+            
+            cards.forEach(card => {
+                const text = card.textContent.toLowerCase();
+                if (text.includes(searchTerm)) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+    </script>
+</body>
+</html>
