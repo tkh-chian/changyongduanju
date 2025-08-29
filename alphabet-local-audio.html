@@ -115,18 +115,27 @@
   function playFile(url){
     return new Promise((resolve)=>{
       if(audio){ try{ audio.pause(); }catch(e){} }
-      audio = new Audio();
-      audio.preload = 'auto';
-      audio.src = url;
-      audio.onended = ()=>resolve(true);
-      audio.onerror = ()=>resolve(false);
-      // iOS/Android 需用户手势启动后方可播放，此时按钮已点击触发
-      const playPromise = audio.play();
-      if(playPromise && playPromise.catch){
-        playPromise.catch(()=>resolve(false));
-      }
-      // 超时保护
-      setTimeout(()=> resolve(false), 12000);
+
+      const tryPlay = (src, doFallback)=>{
+        audio = new Audio();
+        audio.preload = 'auto';
+        audio.src = src;
+        audio.onended = ()=>resolve(true);
+        audio.onerror = async ()=>{
+          if(doFallback && !/^https?:\/\//i.test(src)) {
+            // 回退到 GitHub 原始直链
+            const fallback = 'https://raw.githubusercontent.com/tkh-chian/changyongduanju/main/' + src.replace(/^\.?\/*/,'');
+            tryPlay(fallback, false);
+          } else {
+            resolve(false);
+          }
+        };
+        const p = audio.play();
+        if(p && p.catch){ p.catch(()=>{ /* 交给 onerror/超时处理 */ }); }
+        setTimeout(()=> resolve(false), 12000);
+      };
+
+      tryPlay(url, true);
     });
   }
 

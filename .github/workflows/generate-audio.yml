@@ -1,0 +1,42 @@
+name: Generate Audio
+
+on:
+  push:
+    paths:
+      - audio-manifest.json
+      - scripts/generate_audio.py
+      - .github/workflows/generate-audio.yml
+      - alphabet-local-audio.html
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install gTTS
+        run: pip install gTTS==2.5.1
+
+      - name: Generate audio from manifest
+        run: python scripts/generate_audio.py
+
+      - name: Commit generated audio
+        run: |
+          if [[ -n "$(git status --porcelain)" ]]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add -A
+            git commit -m "Auto-generate audio via gTTS"
+            git push
+          else
+            echo "No changes to commit."
+          fi
