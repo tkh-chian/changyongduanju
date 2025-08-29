@@ -220,10 +220,6 @@
             transition: all 0.3s ease;
         }
         
-        .fixed-controls.hidden {
-            transform: translateY(-100%);
-        }
-        
         .fixed-controls .control-btn {
             background: rgba(255,255,255,0.2);
             color: white;
@@ -348,14 +344,15 @@
         <!-- 移动端提示 -->
         <div id="mobileTip" style="display: none; background: #fff3cd; padding: 15px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #ffeeba;">
             <h3 style="color: #856404; margin-bottom: 10px;">📱 移动端使用提示</h3>
-            <p>检测到您正在使用移动设备浏览。由于移动浏览器限制，自动播放可能不会发出声音。</p>
-            <p style="margin-top: 10px;">建议：</p>
-            <ul style="margin-left: 20px; margin-top: 5px;">
-                <li>点击单个字母的"发音"按钮可正常听到发音</li>
-                <li>自动播放功能在移动端将以无声模式运行</li>
-                <li>使用电脑访问可获得完整体验</li>
-            </ul>
-            <button onclick="document.getElementById('mobileTip').style.display='none';" style="background: #856404; color: white; border: none; padding: 8px 15px; border-radius: 5px; margin-top: 10px; cursor: pointer;">我知道了</button>
+            <p>检测到您正在使用移动设备浏览。</p>
+            <p style="margin-top: 10px;"><strong>如何听到发音：</strong></p>
+            <ol style="margin-left: 20px; margin-top: 5px;">
+                <li>请先点击字母卡片上的「🔊 发音」按钮测试</li>
+                <li>一定要先点击网页上任意位置，解锁手机的音频权限</li>
+                <li>如果仍无声音，请尝试用其他浏览器打开（如Chrome或Safari）</li>
+            </ol>
+            <button onclick="initAudio();" style="background: #856404; color: white; border: none; padding: 8px 15px; border-radius: 5px; margin-top: 10px; cursor: pointer;">解锁音频权限</button>
+            <button onclick="document.getElementById('mobileTip').style.display='none';" style="background: #856404; color: white; border: none; padding: 8px 15px; border-radius: 5px; margin-top: 10px; margin-left: 10px; cursor: pointer;">我知道了</button>
         </div>
         
         <div class="summary">
@@ -571,29 +568,17 @@
                 document.getElementById('mobileTip').style.display = 'block';
             }
             
-            // 添加点击事件初始化音频
-            document.body.addEventListener('click', function() {
-                if (!audioInitialized) {
-                    initAudio();
-                }
-            }, { once: true });
-            
-            // 滚动事件处理
-            let lastScrollTop = 0;
-            window.addEventListener('scroll', function() {
-                const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+            // 在页面加载后去除滚动事件对控制面板的影响
+            document.getElementById('toggleControls').addEventListener('click', function() {
                 const controlPanel = document.getElementById('fixedControls');
-                
-                // 向下滚动时隐藏控制面板，向上滚动时显示
-                if (scrollTop > lastScrollTop && scrollTop > 100) {
-                    // 向下滚动
-                    controlPanel.classList.add('hidden');
-                } else {
-                    // 向上滚动
-                    controlPanel.classList.remove('hidden');
-                }
-                
-                lastScrollTop = scrollTop;
+                controlPanel.style.display = controlPanel.style.display === 'none' ? 'flex' : 'none';
+                this.textContent = controlPanel.style.display === 'none' ? '▼' : '≡';
+            });
+            
+            // 在页面上添加全局点击事件处理音频初始化
+            document.addEventListener('click', function initAudioOnClick() {
+                initAudio();
+                document.removeEventListener('click', initAudioOnClick);
             });
         });
 
@@ -604,24 +589,48 @@
             
             // 创建音频上下文
             if (!audioContext && window.AudioContext) {
-                audioContext = new AudioContext();
-                
-                // 创建一个静音的音频源，用于解锁移动端音频
-                const silentBuffer = audioContext.createBuffer(1, 1, 22050);
-                const source = audioContext.createBufferSource();
-                source.buffer = silentBuffer;
-                source.connect(audioContext.destination);
-                source.start(0);
+                try {
+                    audioContext = new AudioContext();
+                    
+                    // 创建一个静音的音频源，用于解锁移动端音频
+                    const silentBuffer = audioContext.createBuffer(1, 1, 22050);
+                    const source = audioContext.createBufferSource();
+                    source.buffer = silentBuffer;
+                    source.connect(audioContext.destination);
+                    source.start(0);
+                } catch (e) {
+                    console.log('初始化音频上下文失败:', e);
+                }
             }
             
             // 如果支持语音合成，解锁它
             if ('speechSynthesis' in window) {
-                const silence = new SpeechSynthesisUtterance('');
-                silence.volume = 0;
-                speechSynthesis.speak(silence);
+                try {
+                    // 直接播放一个简短的声音解锁语音合成
+                    const unlock = new SpeechSynthesisUtterance('【】');
+                    unlock.volume = 0.1;
+                    unlock.rate = 0.1;
+                    speechSynthesis.speak(unlock);
+                    
+                    // 尝试进一步解锁
+                    setTimeout(() => {
+                        speechSynthesis.cancel(); // 清理语音队列
+                        const unblock = new SpeechSynthesisUtterance('ก');
+                        unblock.lang = 'th-TH';
+                        unblock.volume = 0.2;
+                        speechSynthesis.speak(unblock);
+                    }, 500);
+                } catch (e) {
+                    console.log('解锁语音合成失败:', e);
+                }
             }
             
             audioInitialized = true;
+            
+            // 在移动端显示提示
+            if (isMobile) {
+                document.getElementById('mobileTip').innerHTML += '<p style="color: green; margin-top: 10px;">音频已初始化！点击任意字母的发音按钮测试。</p>';
+            }
         }
         
         // 发音功能
@@ -631,55 +640,68 @@
                 initAudio();
             }
             
-            // 移动端特别处理
-            if (isMobile && autoNext) {
-                // 使用本地记录而不是真实播放声音
-                updatePlayStatus(`正在学习: ${letter}`);
-                
-                // 高亮显示即可，不实际发声（避免弹窗）
-                if (autoNext && isPlaying) {
-                    setTimeout(() => {
-                        playNext();
-                    }, 800 / playSpeed);
-                }
-                return;
-            }
-            
-            // 电脑版或移动端手动点击
+            // 电脑自动播放或单个字母点击播放
             if ('speechSynthesis' in window) {
-                // 停止当前播放
-                speechSynthesis.cancel();
-                
-                const utterance = new SpeechSynthesisUtterance(letter);
-                utterance.lang = 'th-TH';
-                utterance.rate = 0.7 * playSpeed;
-                utterance.volume = 0.8;
-                
-                // 播放结束后的回调
-                utterance.onend = function() {
+                try {
+                    // 停止当前播放
+                    speechSynthesis.cancel();
+                    
+                    // 如果是移动端自动播放模式，跳过发声
+                    if (isMobile && autoNext) {
+                        // 更新状态，但不播放声音
+                        updatePlayStatus(`正在学习: ${letter}`);
+                        if (isPlaying) {
+                            setTimeout(() => {
+                                playNext();
+                            }, 800 / playSpeed);
+                        }
+                        return;
+                    }
+                    
+                    // 手动点击或电脑自动播放
+                    const utterance = new SpeechSynthesisUtterance(letter);
+                    utterance.lang = 'th-TH';
+                    utterance.rate = 0.7 * playSpeed;
+                    utterance.volume = 1.0; // 最大音量
+                    
+                    // 播放结束后的回调
+                    utterance.onend = function() {
+                        if (autoNext && isPlaying) {
+                            setTimeout(() => {
+                                playNext();
+                            }, 500 / playSpeed);
+                        }
+                    };
+                    
+                    // 播放错误处理
+                    utterance.onerror = function(event) {
+                        console.log('语音合成错误:', event);
+                        if (autoNext && isPlaying) {
+                            setTimeout(() => {
+                                playNext();
+                            }, 500 / playSpeed);
+                        }
+                    };
+                    
+                    // 直接播放
+                    speechSynthesis.speak(utterance);
+                    
+                } catch (e) {
+                    console.log('语音合成异常:', e);
+                    // 错误也要继续自动播放
                     if (autoNext && isPlaying) {
                         setTimeout(() => {
                             playNext();
-                        }, 500 / playSpeed); // 间隔时间也根据速度调整
+                        }, 800 / playSpeed);
                     }
-                };
-                
-                // 避免移动端出现中断
-                if (isMobile && autoNext) {
-                    setTimeout(() => {
-                        if (isPlaying) playNext();
-                    }, 800 / playSpeed);
-                } else {
-                    speechSynthesis.speak(utterance);
                 }
             } else {
                 // 降级处理
-                if (!isMobile) alert(`发音: ${letter}`);
-                
+                console.log('浏览器不支持语音合成');
                 if (autoNext && isPlaying) {
                     setTimeout(() => {
                         playNext();
-                    }, 1000 / playSpeed);
+                    }, 800 / playSpeed);
                 }
             }
         }
@@ -820,11 +842,20 @@
                     card.classList.add('current-playing');
                     currentHighlightedCard = card;
                     
-                    // 滚动到当前播放的字母
-                    card.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'center'
-                    });
+                    // 计算卡片位置，留出控制栏的空间
+                    const controlsHeight = document.getElementById('fixedControls').offsetHeight;
+                    const cardPosition = card.getBoundingClientRect();
+                    const offset = 30; // 添加额外空间
+                    
+                    // 如果卡片在可视区域内，不需要滚动
+                    if (cardPosition.top < controlsHeight + offset || 
+                        cardPosition.bottom > window.innerHeight - offset) {
+                        // 仅当卡片不可见时才滚动
+                        window.scrollTo({
+                            top: window.pageYOffset + cardPosition.top - controlsHeight - offset,
+                            behavior: 'smooth'
+                        });
+                    }
                 }
             });
         }
@@ -887,10 +918,14 @@
         // 显示/隐藏控制面板
         function toggleControlPanel() {
             const controlPanel = document.getElementById('fixedControls');
-            controlPanel.classList.toggle('hidden');
+            if (controlPanel.style.display === 'none') {
+                controlPanel.style.display = 'flex';
+            } else {
+                controlPanel.style.display = 'none';
+            }
             
             const toggleBtn = document.getElementById('toggleControls');
-            toggleBtn.textContent = controlPanel.classList.contains('hidden') ? '▼' : '≡';
+            toggleBtn.textContent = controlPanel.style.display === 'none' ? '▼' : '≡';
         }
 
         // 添加搜索功能
