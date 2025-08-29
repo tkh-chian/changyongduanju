@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>泰语常用短语学习 - 中文拼音发音版</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .control-panel {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 15px;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+            z-index: 1000;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .control-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 80px;
+        }
+
+        .play-btn {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+        }
+
+        .pause-btn {
+            background: linear-gradient(45deg, #ff9800, #f57c00);
+            color: white;
+        }
+
+        .stop-btn {
+            background: linear-gradient(45deg, #f44336, #d32f2f);
+            color: white;
+        }
+
+        .control-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .status {
+            font-weight: bold;
+            color: #666;
+            margin: 0 15px;
+        }
+
+        .progress {
+            color: #4CAF50;
+            font-weight: bold;
+        }
+
+        .main-content {
+            margin-top: 100px;
+            padding: 20px;
+        }
+
+        .phrase-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+        }
+
+        .phrase-card {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            border-left: 5px solid #667eea;
+        }
+
+        .phrase-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+        }
+
+        .phrase-card.current {
+            border-left-color: #4CAF50;
+            background: rgba(76, 175, 80, 0.1);
+            transform: scale(1.02);
+        }
+
+        .thai-text {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+
+        .pronunciation {
+            font-size: 18px;
+            color: #e74c3c;
+            font-weight: bold;
+            margin-bottom: 10px;
+            background: rgba(231, 76, 60, 0.1);
+            padding: 8px 12px;
+            border-radius: 8px;
+            border-left: 3px solid #e74c3c;
+        }
+
+        .chinese-text {
+            font-size: 18px;
+            color: #666;
+            margin-bottom: 15px;
+        }
+
+        .category {
+            display: inline-block;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .audio-status {
+            font-size: 12px;
+            color: #999;
+            margin-top: 10px;
+        }
+
+        .pronunciation-note {
+            background: rgba(52, 152, 219, 0.1);
+            border-left: 3px solid #3498db;
+            padding: 15px;
+            margin: 20px auto;
+            max-width: 1200px;
+            border-radius: 8px;
+        }
+
+        .pronunciation-note h3 {
+            color: #3498db;
+            margin-bottom: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .control-panel {
+                padding: 10px;
+            }
+            
+            .control-btn {
+                padding: 8px 16px;
+                font-size: 14px;
+                min-width: 70px;
+            }
+            
+            .main-content {
+                margin-top: 120px;
+                padding: 15px;
+            }
+            
+            .phrase-container {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            
+            .thai-text {
+                font-size: 20px;
+            }
+            
+            .pronunciation {
+                font-size: 16px;
+            }
+            
+            .chinese-text {
+                font-size: 16px;
+            }
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="control-panel">
+        <button class="control-btn play-btn" onclick="startLearning()">▶️ 开始学习</button>
+        <button class="control-btn pause-btn" onclick="pauseLearning()">⏸️ 暂停</button>
+        <button class="control-btn stop-btn" onclick="stopLearning()">⏹️ 停止</button>
+        <div class="status">
+            <span class="progress" id="progress">准备就绪</span>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="pronunciation-note">
+            <h3>🔊 发音说明</h3>
+            <p><strong>红色拼音</strong>是泰语的中文近似发音，请按照中文拼音的方式读出。虽然不是100%准确，但能帮助您快速入门泰语发音。</p>
+            <p><strong>学习建议：</strong>先跟着拼音练习，然后找机会听真正的泰语发音来纠正。</p>
+        </div>
+        
+        <div class="phrase-container" id="phraseContainer">
+            <div class="loading">正在加载泰语短语...</div>
+        </div>
+    </div>
+
+    <script>
+        // 泰语常用短语数据（带中文拼音发音）
+        const phrases = [
+            // 问候类
+            { thai: "สวัสดี", pronunciation: "sa-wa-di", chinese: "你好", category: "问候" },
+            { thai: "สวัสดีครับ", pronunciation: "sa-wa-di-krap", chinese: "你好（男性用）", category: "问候" },
+            { thai: "สวัสดีค่ะ", pronunciation: "sa-wa-di-ka", chinese: "你好（女性用）", category: "问候" },
+            { thai: "ลาก่อน", pronunciation: "la-gong", chinese: "再见", category: "问候" },
+            { thai: "ขอบคุณ", pronunciation: "kop-kun", chinese: "谢谢", category: "问候" },
+            { thai: "ขอบคุณครับ", pronunciation: "kop-kun-krap", chinese: "谢谢（男性用）", category: "问候" },
+            { thai: "ขอบคุณค่ะ", pronunciation: "kop-kun-ka", chinese: "谢谢（女性用）", category: "问候" },
+            { thai: "ไม่เป็นไร", pronunciation: "mai-pen-lai", chinese: "没关系", category: "问候" },
+            { thai: "ขอโทษ", pronunciation: "kor-tot", chinese: "对不起", category: "问候" },
+            { thai: "ยินดีที่ได้รู้จัก", pronunciation: "yin-di-ti-dai-ru-jak", chinese: "很高兴认识你", category: "问候" },
+
+            // 日常用语
+            { thai: "คุณสบายดีไหม", pronunciation: "kun-sa-bai-di-mai", chinese: "你好吗？", category: "日常" },
+            { thai: "สบายดี", pronunciation: "sa-bai-di", chinese: "我很好", category: "日常" },
+            { thai: "คุณชื่ออะไร", pronunciation: "kun-chu-a-lai", chinese: "你叫什么名字？", category: "日常" },
+            { thai: "ผมชื่อ...", pronunciation: "pom-chu...", chinese: "我叫...（男性用）", category: "日常" },
+            { thai: "ดิฉันชื่อ...", pronunciation: "di-chan-chu...", chinese: "我叫...（女性用）", category: "日常" },
+            { thai: "คุณมาจากไหน", pronunciation: "kun-ma-jak-nai", chinese: "你来自哪里？", category: "日常" },
+            { thai: "ผมมาจากจีน", pronunciation: "pom-ma-jak-jin", chinese: "我来自中国（男性用）", category: "日常" },
+            { thai: "ดิฉันมาจากจีน", pronunciation: "di-chan-ma-jak-jin", chinese: "我来自中国（女性用）", category: "日常" },
+            { thai: "คุณอายุเท่าไหร่", pronunciation: "kun-a-yu-tao-lai", chinese: "你多大了？", category: "日常" },
+            { thai: "ผมอายุ...ปี", pronunciation: "pom-a-yu...pi", chinese: "我...岁（男性用）", category: "日常" },
+
+            // 购物类
+            { thai: "นี่เท่าไหร่", pronunciation: "ni-tao-lai", chinese: "这个多少钱？", category: "购物" },
+            { thai: "แพงไป", pronunciation: "peng-pai", chinese: "太贵了", category: "购物" },
+            { thai: "ลดราคาได้ไหม", pronunciation: "lot-la-ka-dai-mai", chinese: "能便宜点吗？", category: "购物" },
+            { thai: "ผมจะซื้อ", pronunciation: "pom-ja-su", chinese: "我要买（男性用）", category: "购物" },
+            { thai: "ดิฉันจะซื้อ", pronunciation: "di-chan-ja-su", chinese: "我要买（女性用）", category: "购物" },
+            { thai: "มีสีอื่นไหม", pronunciation: "mi-si-un-mai", chinese: "有其他颜色吗？", category: "购物" },
+            { thai: "มีไซส์อื่นไหม", pronunciation: "mi-sai-un-mai", chinese: "有其他尺寸吗？", category: "购物" },
+            { thai: "ขอใบเสร็จ", pronunciation: "kor-bai-set", chinese: "要收据", category: "购物" },
+            { thai: "จ่ายเงินสด", pronunciation: "jai-ngen-sot", chinese: "付现金", category: "购物" },
+            { thai: "จ่ายด้วยบัตร", pronunciation: "jai-duai-bat", chinese: "刷卡", category: "购物" },
+
+            // 餐厅类
+            { thai: "ขอเมนู", pronunciation: "kor-me-nu", chinese: "要菜单", category: "餐厅" },
+            { thai: "ผมจะสั่ง...", pronunciation: "pom-ja-sang...", chinese: "我要点...（男性用）", category: "餐厅" },
+            { thai: "ดิฉันจะสั่ง...", pronunciation: "di-chan-ja-sang...", chinese: "我要点...（女性用）", category: "餐厅" },
+            { thai: "ไม่เผ็ด", pronunciation: "mai-pet", chinese: "不要辣", category: "餐厅" },
+            { thai: "เผ็ดนิดหน่อย", pronunciation: "pet-nit-noi", chinese: "微辣", category: "餐厅" },
+            { thai: "เผ็ดมาก", pronunciation: "pet-mak", chinese: "很辣", category: "餐厅" },
+            { thai: "อร่อย", pronunciation: "a-loi", chinese: "好吃", category: "餐厅" },
+            { thai: "เช็คบิล", pronunciation: "chek-bin", chinese: "买单", category: "餐厅" },
+            { thai: "ขอน้ำ", pronunciation: "kor-nam", chinese: "要水", category: "餐厅" },
+            { thai: "ขอเบียร์", pronunciation: "kor-bia", chinese: "要啤酒", category: "餐厅" },
+
+            // 旅行类
+            { thai: "สถานีรถไฟอยู่ไหน", pronunciation: "sa-ta-ni-rot-fai-yu-nai", chinese: "火车站在哪里？", category: "旅行" },
+            { thai: "สนามบินอยู่ไหน", pronunciation: "sa-nam-bin-yu-nai", chinese: "机场在哪里？", category: "旅行" },
+            { thai: "โรงแรมอยู่ไหน", pronunciation: "rong-rem-yu-nai", chinese: "酒店在哪里？", category: "旅行" },
+            { thai: "ห้องน้ำอยู่ไหน", pronunciation: "hong-nam-yu-nai", chinese: "厕所在哪里？", category: "旅行" },
+            { thai: "ไปยังไง", pronunciation: "pai-yang-ngai", chinese: "怎么去？", category: "旅行" },
+            { thai: "เท่าไหร่", pronunciation: "tao-lai", chinese: "多少钱？", category: "旅行" },
+            { thai: "ใกล้ไหม", pronunciation: "glai-mai", chinese: "近吗？", category: "旅行" },
+            { thai: "ไกลไหม", pronunciation: "glai-mai", chinese: "远吗？", category: "旅行" },
+            { thai: "ขอแผนที่", pronunciation: "kor-pen-ti", chinese: "要地图", category: "旅行" },
+            { thai: "หลงทาง", pronunciation: "long-tang", chinese: "迷路了", category: "旅行" },
+
+            // 紧急情况
+            { thai: "ช่วยด้วย", pronunciation: "chuai-duai", chinese: "救命", category: "紧急" },
+            { thai: "เรียกตำรวจ", pronunciation: "riak-tam-luat", chinese: "叫警察", category: "紧急" },
+            { thai: "เรียกหมอ", pronunciation: "riak-mor", chinese: "叫医生", category: "紧急" },
+            { thai: "โรงพยาบาลอยู่ไหน", pronunciation: "rong-pa-ya-ban-yu-nai", chinese: "医院在哪里？", category: "紧急" },
+            { thai: "ผมป่วย", pronunciation: "pom-puai", chinese: "我生病了（男性用）", category: "紧急" },
+            { thai: "ดิฉันป่วย", pronunciation: "di-chan-puai", chinese: "我生病了（女性用）", category: "紧急" },
+            { thai: "ปวดหัว", pronunciation: "puat-hua", chinese: "头疼", category: "紧急" },
+            { thai: "ปวดท้อง", pronunciation: "puat-tong", chinese: "肚子疼", category: "紧急" },
+            { thai: "มีไฟไหม้", pronunciation: "mi-fai-mai", chinese: "着火了", category: "紧急" },
+            { thai: "เกิดอุบัติเหตุ", pronunciation: "gert-u-bat-ti-het", chinese: "发生事故了", category: "紧急" }
+        ];
+
+        let currentIndex = 0;
+        let isPlaying = false;
+        let isPaused = false;
+
+        // 初始化页面
+        function initializePage() {
+            const container = document.getElementById('phraseContainer');
+            container.innerHTML = '';
+            
+            phrases.forEach((phrase, index) => {
+                const card = document.createElement('div');
+                card.className = 'phrase-card';
+                card.id = `phrase-${index}`;
+                card.innerHTML = `
+                    <div class="category">${phrase.category}</div>
+                    <div class="thai-text">${phrase.thai}</div>
+                    <div class="pronunciation">🔊 ${phrase.pronunciation}</div>
+                    <div class="chinese-text">${phrase.chinese}</div>
+                    <div class="audio-status" id="status-${index}">准备播放</div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // 播放语音
+        function speak(text, lang = 'zh-CN') {
+            return new Promise((resolve) => {
+                if ('speechSynthesis' in window) {
+                    const utterance = new SpeechSynthesisUtterance(text);
+                    utterance.lang = lang;
+                    utterance.rate = 0.8;
+                    utterance.onend = resolve;
+                    utterance.onerror = resolve;
+                    speechSynthesis.speak(utterance);
+                } else {
+                    resolve();
+                }
+            });
+        }
+
+        // 播放当前短语
+        async function playCurrentPhrase() {
+            if (currentIndex >= phrases.length) {
+                stopLearning();
+                return;
+            }
+
+            const phrase = phrases[currentIndex];
+            const card = document.getElementById(`phrase-${currentIndex}`);
+            const status = document.getElementById(`status-${currentIndex}`);
+            
+            // 高亮当前卡片
+            document.querySelectorAll('.phrase-card').forEach(c => c.classList.remove('current'));
+            card.classList.add('current');
+            card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            
+            // 更新进度
+            document.getElementById('progress').textContent = `${currentIndex + 1}/${phrases.length} - ${phrase.category}`;
+            
+            try {
+                // 播放泰语拼音 3 次
+                for (let i = 0; i < 3; i++) {
+                    if (!isPlaying || isPaused) return;
+                    status.textContent = `播放泰语拼音 ${i + 1}/3`;
+                    await speak(phrase.pronunciation, 'zh-CN');
+                    if (!isPlaying || isPaused) return;
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                }
+                
+                // 播放中文 3 次
+                for (let i = 0; i < 3; i++) {
+                    if (!isPlaying || isPaused) return;
+                    status.textContent = `播放中文 ${i + 1}/3`;
+                    await speak(phrase.chinese, 'zh-CN');
+                    if (!isPlaying || isPaused) return;
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                }
+                
+                status.textContent = '播放完成';
+                
+                // 继续下一个
+                if (isPlaying && !isPaused) {
+                    currentIndex++;
+                    setTimeout(() => playCurrentPhrase(), 1000);
+                }
+                
+            } catch (error) {
+                console.error('播放错误:', error);
+                status.textContent = '播放失败';
+                // 继续下一个
+                if (isPlaying && !isPaused) {
+                    currentIndex++;
+                    setTimeout(() => playCurrentPhrase(), 1000);
+                }
+            }
+        }
+
+        // 开始学习
+        function startLearning() {
+            if (isPaused) {
+                isPaused = false;
+                playCurrentPhrase();
+            } else {
+                isPlaying = true;
+                isPaused = false;
+                currentIndex = 0;
+                playCurrentPhrase();
+            }
+        }
+
+        // 暂停学习
+        function pauseLearning() {
+            isPaused = true;
+            if ('speechSynthesis' in window) {
+                speechSynthesis.cancel();
+            }
+        }
+
+        // 停止学习
+        function stopLearning() {
+            isPlaying = false;
+            isPaused = false;
+            currentIndex = 0;
+            
+            if ('speechSynthesis' in window) {
+                speechSynthesis.cancel();
+            }
+            
+            document.querySelectorAll('.phrase-card').forEach(c => c.classList.remove('current'));
+            document.querySelectorAll('.audio-status').forEach(s => s.textContent = '准备播放');
+            document.getElementById('progress').textContent = '已停止';
+        }
+
+        // 页面加载完成后初始化
+        window.addEventListener('load', initializePage);
+    </script>
+</body>
+</html>
