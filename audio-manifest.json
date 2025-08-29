@@ -1,0 +1,56 @@
+[
+  {
+    "id": "ko_kai",
+    "category": "辅音",
+    "thai": "ก",
+    "thaiName": "ก ไก่",
+    "chinese": "鸡",
+    "thAudio": "assets/audio/th/consonants/ko_kai.mp3",
+    "zhAudio": "assets/audio/zh/consonants/ko_kai.zh.mp3"
+  },
+  {
+    "id": "kho_khai",
+    "category": "辅音",
+    "thai": "ข",
+    "thaiName": "ข ไข่",
+    "chinese": "鸡蛋",
+    "thAudio": "assets/audio/th/consonants/kho_khai.mp3",
+    "zhAudio": "assets/audio/zh/consonants/kho_khai.zh.mp3"
+  },
+  {
+    "id": "kho_khuwat",
+    "category": "辅音",
+    "thai": "ฃ",
+    "thaiName": "ฃ ขวด",
+    "chinese": "瓶子（已废字，了解即可）",
+    "thAudio": "assets/audio/th/consonants/kho_khuwat.mp3",
+    "zhAudio": "assets/audio/zh/consonants/kho_khuwat.zh.mp3"
+  },
+  {
+    "id": "kho_khwai",
+    "category": "辅音",
+    "thai": "ค",
+    "thaiName": "ค ควาย",
+    "chinese": "水牛",
+    "thAudio": "assets/audio/th/consonants/kho_khwai.mp3",
+    "zhAudio": "assets/audio/zh/consonants/kho_khwai.zh.mp3"
+  },
+  {
+    "id": "ngo_ngoo",
+    "category": "辅音",
+    "thai": "ง",
+    "thaiName": "ง งู",
+    "chinese": "蛇",
+    "thAudio": "assets/audio/th/consonants/ngo_ngoo.mp3",
+    "zhAudio": "assets/audio/zh/consonants/ngo_ngoo.zh.mp3"
+  },
+  {
+    "id": "cho_chang",
+    "category": "辅音",
+    "thai": "ช",
+    "thaiName": "ช ช้าง",
+    "chinese": "大象",
+    "thAudio": "assets/audio/th/consonants/cho_chang.mp3",
+    "zhAudio": "assets/audio/zh/consonants/cho_chang.zh.mp3"
+  }
+]

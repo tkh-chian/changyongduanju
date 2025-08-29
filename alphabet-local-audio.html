@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>泰语字母学习（本地音频版）</title>
+<style>
+  :root { --bg: #f6f7fb; --card:#fff; --primary:#6c5ce7; --ok:#2e7d32; --warn:#e65100; --err:#c62828; }
+  *{ box-sizing: border-box; }
+  body{ margin:0; font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial; background: var(--bg); color:#222; }
+  .topbar{
+    position: sticky; top:0; z-index: 10;
+    background: rgba(255,255,255,.95); backdrop-filter: blur(8px);
+    border-bottom: 1px solid #eee; padding: 10px 12px;
+    display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+  }
+  .btn{ border:0; padding:10px 14px; border-radius:10px; font-weight:600; cursor:pointer; }
+  .play{ background:#2ecc71; color:#fff; }
+  .pause{ background:#ff9800; color:#fff; }
+  .stop{ background:#f44336; color:#fff; }
+  .status{ font-size:14px; color:#555; margin-left:auto; }
+  .container{ max-width: 1100px; margin: 14px auto; padding: 0 12px 24px; }
+  .grid{ display:grid; grid-template-columns: repeat(auto-fill, minmax(220px,1fr)); gap:12px; }
+  .card{
+    background: var(--card); border-radius: 14px; padding: 14px; box-shadow: 0 8px 26px rgba(0,0,0,.06);
+    border-left: 5px solid #e0e0ff; transition: transform .15s ease, box-shadow .15s ease;
+  }
+  .card:hover{ transform: translateY(-2px); box-shadow: 0 12px 32px rgba(0,0,0,.08); }
+  .card.current{ border-left-color: var(--primary); background: #faf8ff; }
+  .badge{ display:inline-block; font-size:12px; padding:2px 8px; border-radius: 999px; background:#eef; color:#556; margin-right:6px; }
+  .badge.miss{ background:#ffebee; color:#b71c1c; }
+  .thai{ font-size:28px; font-weight:700; margin:6px 0; color:#2c3e50; }
+  .thaiName{ font-size:14px; color:#666; }
+  .cn{ font-size:16px; color:#555; margin:6px 0 8px; }
+  .mini{ font-size:12px; color:#777; }
+  .panel{ background:#fff; border-radius: 12px; padding: 12px; margin: 0 12px 12px; border: 1px dashed #e0e0e0; }
+  a { color: var(--primary); text-decoration: none; }
+  .prog { color:#333; font-weight:600; }
+</style>
+</head>
+<body>
+  <div class="topbar">
+    <button class="btn play" id="btnPlay">▶️ 播放</button>
+    <button class="btn pause" id="btnPause">⏸️ 暂停</button>
+    <button class="btn stop" id="btnStop">⏹️ 停止</button>
+    <div class="status">
+      <span id="progress" class="prog">未开始</span>
+      <span id="hint" class="mini">（需先点击播放以解锁音频）</span>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="panel mini">
+      本页使用“本地音频文件”实现泰语与中文发音，100%兼容手机/电脑。将 mp3 放入 assets/audio 下并按 audio-manifest.json 清单命名即可。说明见
+      <a href="assets/audio/README.md" target="_blank">assets/audio/README.md</a>。
+    </div>
+    <div id="list" class="grid"></div>
+  </div>
+
+<script>
+(function(){
+  const manifestUrl = 'audio-manifest.json';
+  const listEl = document.getElementById('list');
+  const btnPlay = document.getElementById('btnPlay');
+  const btnPause = document.getElementById('btnPause');
+  const btnStop = document.getElementById('btnStop');
+  const progressEl = document.getElementById('progress');
+  const hintEl = document.getElementById('hint');
+
+  let items = [];
+  let idx = 0;
+  let isPlaying = false;
+  let isPaused = false;
+  let audio = null;
+
+  async function loadManifest(){
+    const res = await fetch(manifestUrl, { cache:'no-store' });
+    if(!res.ok){ throw new Error('无法加载清单: '+res.status); }
+    const data = await res.json();
+    return data;
+  }
+
+  function render(){
+    listEl.innerHTML = '';
+    items.forEach((it, i)=>{
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.id = 'card-'+i;
+      card.innerHTML = `
+        <div class="mini">
+          <span class="badge">${it.category||'字母'}</span>
+          ${!it.thAudio ? '<span class="badge miss">缺泰语音频</span>':''}
+          ${!it.zhAudio ? '<span class="badge miss">缺中文音频</span>':''}
+        </div>
+        <div class="thai">${it.thai||''}</div>
+        <div class="thaiName">${it.thaiName||''}</div>
+        <div class="cn">中文：${it.chinese||''}</div>
+        <div class="mini" id="st-${i}">状态：待播</div>
+      `;
+      listEl.appendChild(card);
+    });
+  }
+
+  function setCurrent(i){
+    document.querySelectorAll('.card').forEach(el=>el.classList.remove('current'));
+    const el = document.getElementById('card-'+i);
+    if(el){ el.classList.add('current'); el.scrollIntoView({behavior:'smooth', block:'center'}); }
+  }
+
+  function setStatus(i, text){
+    const el = document.getElementById('st-'+i);
+    if(el) el.textContent = '状态：'+text;
+  }
+
+  function playFile(url){
+    return new Promise((resolve)=>{
+      if(audio){ try{ audio.pause(); }catch(e){} }
+      audio = new Audio();
+      audio.preload = 'auto';
+      audio.src = url;
+      audio.onended = ()=>resolve(true);
+      audio.onerror = ()=>resolve(false);
+      // iOS/Android 需用户手势启动后方可播放，此时按钮已点击触发
+      const playPromise = audio.play();
+      if(playPromise && playPromise.catch){
+        playPromise.catch(()=>resolve(false));
+      }
+      // 超时保护
+      setTimeout(()=> resolve(false), 12000);
+    });
+  }
+
+  async function playOneItem(i){
+    const it = items[i];
+    if(!it){ return; }
+    setCurrent(i);
+    progressEl.textContent = `${i+1}/${items.length} - ${it.thaiName||it.thai||''}`;
+
+    // 泰语 3 遍
+    for(let k=1;k<=3;k++){
+      if(!isPlaying || isPaused) return;
+      if(it.thAudio){
+        setStatus(i, `泰语第 ${k}/3 遍播放中...`);
+        const ok = await playFile(it.thAudio);
+        if(!ok){ setStatus(i, `泰语音频缺失或失败（第${k}遍），已跳过`); break; }
+      }else{
+        setStatus(i, '缺泰语音频，已跳过');
+        break;
+      }
+      if(!isPlaying || isPaused) return;
+      await new Promise(r=>setTimeout(r, 400));
+    }
+
+    // 中文 3 遍
+    for(let k=1;k<=3;k++){
+      if(!isPlaying || isPaused) return;
+      if(it.zhAudio){
+        setStatus(i, `中文第 ${k}/3 遍播放中...`);
+        const ok = await playFile(it.zhAudio);
+        if(!ok){ setStatus(i, `中文音频缺失或失败（第${k}遍），已跳过`); break; }
+      }else{
+        setStatus(i, '缺中文音频，已跳过');
+        break;
+      }
+      if(!isPlaying || isPaused) return;
+      await new Promise(r=>setTimeout(r, 400));
+    }
+
+    setStatus(i, '完成');
+  }
+
+  async function loop(){
+    while(isPlaying && idx < items.length){
+      if(isPaused) { await new Promise(r=>setTimeout(r,150)); continue; }
+      await playOneItem(idx);
+      if(!isPlaying) break;
+      if(!isPaused){ idx++; await new Promise(r=>setTimeout(r, 600)); }
+    }
+    if(idx >= items.length){ isPlaying = false; progressEl.textContent = '已完成全部'; }
+  }
+
+  function start(){
+    if(!items.length){ return; }
+    isPlaying = true; isPaused = false; hintEl.textContent = '';
+    if(idx >= items.length) idx = 0;
+    loop();
+  }
+
+  function pause(){
+    isPaused = true;
+    if(audio){ try{ audio.pause(); }catch(e){} }
+    progressEl.textContent = '已暂停';
+  }
+
+  function stop(){
+    isPlaying = false; isPaused = false; idx = 0;
+    if(audio){ try{ audio.pause(); }catch(e){} audio = null; }
+    progressEl.textContent = '已停止';
+    document.querySelectorAll('.card').forEach(el=>el.classList.remove('current'));
+    items.forEach((_, i)=> setStatus(i, '待播'));
+  }
+
+  btnPlay.onclick = start;
+  btnPause.onclick = pause;
+  btnStop.onclick = stop;
+
+  (async function init(){
+    try{
+      items = await loadManifest();
+      render();
+      progressEl.textContent = `共 ${items.length} 条 | 点击播放开始`;
+    }catch(e){
+      progressEl.textContent = '清单加载失败';
+      const err = document.createElement('div');
+      err.className = 'panel mini';
+      err.style.color = 'var(--err)';
+      err.textContent = '无法加载 audio-manifest.json：'+ (e.message||e);
+      document.querySelector('.container').prepend(err);
+    }
+  })();
+})();
+</script>
+</body>
+</html>
