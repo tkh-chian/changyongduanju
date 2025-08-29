@@ -203,6 +203,106 @@
             background: rgba(255,255,255,0.3);
         }
         
+        /* 固定在顶部的控制面板 */
+        .fixed-controls {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 10px 20px;
+            z-index: 1000;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            transition: all 0.3s ease;
+        }
+        
+        .fixed-controls.hidden {
+            transform: translateY(-100%);
+        }
+        
+        .fixed-controls .control-btn {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.4);
+            border-radius: 20px;
+            padding: 8px 16px;
+            margin: 5px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+        
+        .fixed-controls .control-btn:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-2px);
+        }
+        
+        .fixed-controls .control-btn.active {
+            background: white;
+            color: #764ba2;
+        }
+        
+        .control-btn .icon {
+            margin-right: 5px;
+            font-size: 1.2rem;
+        }
+        
+        .control-status {
+            color: white;
+            margin: 0 10px;
+            font-size: 0.9rem;
+            background: rgba(0,0,0,0.2);
+            padding: 5px 10px;
+            border-radius: 10px;
+            max-width: 300px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .toggle-controls {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: #764ba2;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            cursor: pointer;
+            z-index: 1001;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            opacity: 0.7;
+            transition: all 0.3s ease;
+        }
+        
+        .toggle-controls:hover {
+            opacity: 1;
+            transform: rotate(180deg);
+        }
+        
+        /* 调整顶部空间，防止控制栏遮挡内容 */
+        body {
+            padding-top: 70px;
+            font-family: 'Noto Sans SC', 'Noto Sans Thai', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            min-height: 100vh;
+            padding-left: 20px;
+            padding-right: 20px;
+            padding-bottom: 20px;
+        }
+        
         @media (max-width: 768px) {
             .alphabet-grid {
                 grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
@@ -215,10 +315,47 @@
     </style>
 </head>
 <body>
+    <!-- 固定的控制面板 -->
+    <div class="fixed-controls" id="fixedControls">
+        <button class="control-btn" id="fixedPlayAllBtn" onclick="startPlayAll()">
+            <span class="icon">▶️</span> 播放全部
+        </button>
+        <button class="control-btn" id="fixedPlayConsonantsBtn" onclick="startPlayConsonants()">
+            <span class="icon">🔤</span> 播放辅音
+        </button>
+        <button class="control-btn" id="fixedPlayVowelsBtn" onclick="startPlayVowels()">
+            <span class="icon">🎵</span> 播放元音
+        </button>
+        <button class="control-btn" id="fixedPauseBtn" onclick="pausePlay()" style="display: none;">
+            <span class="icon">⏸️</span> 暂停
+        </button>
+        <button class="control-btn" id="fixedResumeBtn" onclick="resumePlay()" style="display: none;">
+            <span class="icon">⏯️</span> 继续
+        </button>
+        <button class="control-btn" id="fixedStopBtn" onclick="stopPlay()" style="display: none;">
+            <span class="icon">⏹️</span> 停止
+        </button>
+        <div class="control-status" id="fixedStatus">泰语字母学习</div>
+    </div>
+    
+    <button class="toggle-controls" id="toggleControls" onclick="toggleControlPanel()">≡</button>
     <div class="container">
         <div class="header">
             <h1>🇹🇭 泰语字母学习大全</h1>
             <p>完整的泰语字母表与发音指南</p>
+        </div>
+        
+        <!-- 移动端提示 -->
+        <div id="mobileTip" style="display: none; background: #fff3cd; padding: 15px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #ffeeba;">
+            <h3 style="color: #856404; margin-bottom: 10px;">📱 移动端使用提示</h3>
+            <p>检测到您正在使用移动设备浏览。由于移动浏览器限制，自动播放可能不会发出声音。</p>
+            <p style="margin-top: 10px;">建议：</p>
+            <ul style="margin-left: 20px; margin-top: 5px;">
+                <li>点击单个字母的"发音"按钮可正常听到发音</li>
+                <li>自动播放功能在移动端将以无声模式运行</li>
+                <li>使用电脑访问可获得完整体验</li>
+            </ul>
+            <button onclick="document.getElementById('mobileTip').style.display='none';" style="background: #856404; color: white; border: none; padding: 8px 15px; border-radius: 5px; margin-top: 10px; cursor: pointer;">我知道了</button>
         </div>
         
         <div class="summary">
@@ -388,11 +525,15 @@
         
         // 循环播放相关变量
         let isPlaying = false;
+        let isPaused = false;
         let currentPlayIndex = 0;
         let currentPlayList = [];
         let playSpeed = 1;
         let playInterval;
         let currentHighlightedCard = null;
+        let isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        let audioInitialized = false;
+        let audioContext = null;
 
         // 生成字母卡片
         function generateLetterCard(letter) {
@@ -424,10 +565,87 @@
             // 生成特殊符号
             document.getElementById('specials').innerHTML = 
                 specials.map(generateLetterCard).join('');
+                
+            // 检测移动设备并显示提示
+            if (isMobile) {
+                document.getElementById('mobileTip').style.display = 'block';
+            }
+            
+            // 添加点击事件初始化音频
+            document.body.addEventListener('click', function() {
+                if (!audioInitialized) {
+                    initAudio();
+                }
+            }, { once: true });
+            
+            // 滚动事件处理
+            let lastScrollTop = 0;
+            window.addEventListener('scroll', function() {
+                const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                const controlPanel = document.getElementById('fixedControls');
+                
+                // 向下滚动时隐藏控制面板，向上滚动时显示
+                if (scrollTop > lastScrollTop && scrollTop > 100) {
+                    // 向下滚动
+                    controlPanel.classList.add('hidden');
+                } else {
+                    // 向上滚动
+                    controlPanel.classList.remove('hidden');
+                }
+                
+                lastScrollTop = scrollTop;
+            });
         });
 
+        // 初始化音频环境（解决移动端问题）
+        function initAudio() {
+            // 只初始化一次
+            if (audioInitialized) return;
+            
+            // 创建音频上下文
+            if (!audioContext && window.AudioContext) {
+                audioContext = new AudioContext();
+                
+                // 创建一个静音的音频源，用于解锁移动端音频
+                const silentBuffer = audioContext.createBuffer(1, 1, 22050);
+                const source = audioContext.createBufferSource();
+                source.buffer = silentBuffer;
+                source.connect(audioContext.destination);
+                source.start(0);
+            }
+            
+            // 如果支持语音合成，解锁它
+            if ('speechSynthesis' in window) {
+                const silence = new SpeechSynthesisUtterance('');
+                silence.volume = 0;
+                speechSynthesis.speak(silence);
+            }
+            
+            audioInitialized = true;
+        }
+        
         // 发音功能
         function pronounce(letter, autoNext = false) {
+            // 确保音频已初始化
+            if (!audioInitialized) {
+                initAudio();
+            }
+            
+            // 移动端特别处理
+            if (isMobile && autoNext) {
+                // 使用本地记录而不是真实播放声音
+                updatePlayStatus(`正在学习: ${letter}`);
+                
+                // 高亮显示即可，不实际发声（避免弹窗）
+                if (autoNext && isPlaying) {
+                    setTimeout(() => {
+                        playNext();
+                    }, 800 / playSpeed);
+                }
+                return;
+            }
+            
+            // 电脑版或移动端手动点击
             if ('speechSynthesis' in window) {
                 // 停止当前播放
                 speechSynthesis.cancel();
@@ -446,9 +664,18 @@
                     }
                 };
                 
-                speechSynthesis.speak(utterance);
+                // 避免移动端出现中断
+                if (isMobile && autoNext) {
+                    setTimeout(() => {
+                        if (isPlaying) playNext();
+                    }, 800 / playSpeed);
+                } else {
+                    speechSynthesis.speak(utterance);
+                }
             } else {
-                alert(`发音: ${letter}`);
+                // 降级处理
+                if (!isMobile) alert(`发音: ${letter}`);
+                
                 if (autoNext && isPlaying) {
                     setTimeout(() => {
                         playNext();
@@ -479,12 +706,21 @@
         function startPlay(statusText) {
             if (currentPlayList.length === 0) return;
             
+            // 初始化音频
+            initAudio();
+            
             isPlaying = true;
+            isPaused = false;
             currentPlayIndex = 0;
             
             // 更新UI
             updatePlayButtons(true);
             updatePlayStatus(statusText);
+            
+            // 提示移动用户
+            if (isMobile) {
+                updatePlayStatus(statusText + ' (移动端静音模式)');
+            }
             
             // 开始播放第一个
             playCurrentLetter();
@@ -519,15 +755,30 @@
         
         // 暂停播放
         function pausePlay() {
+            if (!isPlaying) return;
+            
             isPlaying = false;
+            isPaused = true;
             speechSynthesis.cancel();
-            updatePlayButtons(false);
+            updatePlayButtons(false, true);
             updatePlayStatus('播放已暂停');
+        }
+        
+        // 继续播放
+        function resumePlay() {
+            if (!isPaused) return;
+            
+            isPlaying = true;
+            isPaused = false;
+            updatePlayButtons(true);
+            updatePlayStatus('继续播放');
+            playCurrentLetter();
         }
         
         // 停止播放
         function stopPlay() {
             isPlaying = false;
+            isPaused = false;
             speechSynthesis.cancel();
             currentPlayIndex = 0;
             
@@ -579,10 +830,13 @@
         }
         
         // 更新播放按钮状态
-        function updatePlayButtons(playing) {
-            const playBtns = ['playAllBtn', 'playConsonantsBtn', 'playVowelsBtn'];
-            const controlBtns = ['pauseBtn', 'stopBtn'];
+        function updatePlayButtons(playing, paused = false) {
+            const playBtns = ['playAllBtn', 'playConsonantsBtn', 'playVowelsBtn', 'fixedPlayAllBtn', 'fixedPlayConsonantsBtn', 'fixedPlayVowelsBtn'];
+            const pauseBtns = ['pauseBtn', 'fixedPauseBtn'];
+            const resumeBtns = ['fixedResumeBtn'];
+            const stopBtns = ['stopBtn', 'fixedStopBtn'];
             
+            // 播放按钮
             playBtns.forEach(id => {
                 const btn = document.getElementById(id);
                 if (btn) {
@@ -591,10 +845,27 @@
                 }
             });
             
-            controlBtns.forEach(id => {
+            // 暂停按钮
+            pauseBtns.forEach(id => {
                 const btn = document.getElementById(id);
                 if (btn) {
-                    btn.style.display = playing ? 'inline-block' : 'none';
+                    btn.style.display = (playing && !paused) ? 'inline-block' : 'none';
+                }
+            });
+            
+            // 继续按钮
+            resumeBtns.forEach(id => {
+                const btn = document.getElementById(id);
+                if (btn) {
+                    btn.style.display = paused ? 'inline-block' : 'none';
+                }
+            });
+            
+            // 停止按钮
+            stopBtns.forEach(id => {
+                const btn = document.getElementById(id);
+                if (btn) {
+                    btn.style.display = (playing || paused) ? 'inline-block' : 'none';
                 }
             });
         }
@@ -605,6 +876,21 @@
             if (statusElement) {
                 statusElement.textContent = text;
             }
+            
+            // 同时更新固定控制栏状态
+            const fixedStatusElement = document.getElementById('fixedStatus');
+            if (fixedStatusElement) {
+                fixedStatusElement.textContent = text;
+            }
+        }
+        
+        // 显示/隐藏控制面板
+        function toggleControlPanel() {
+            const controlPanel = document.getElementById('fixedControls');
+            controlPanel.classList.toggle('hidden');
+            
+            const toggleBtn = document.getElementById('toggleControls');
+            toggleBtn.textContent = controlPanel.classList.contains('hidden') ? '▼' : '≡';
         }
 
         // 添加搜索功能
