@@ -1,0 +1,351 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Arial', sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    color: #333;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+/* 控制面板 - 固定在顶部 */
+.control-panel {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    padding: 15px 20px;
+    box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.control-panel h1 {
+    text-align: center;
+    color: #4a5568;
+    margin-bottom: 15px;
+    font-size: 1.8rem;
+}
+
+.controls {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 10px;
+}
+
+.btn {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 25px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-width: 80px;
+}
+
+.btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btn.play {
+    background: #48bb78;
+    color: white;
+}
+
+.btn.play:hover:not(:disabled) {
+    background: #38a169;
+    transform: translateY(-2px);
+}
+
+.btn.pause {
+    background: #ed8936;
+    color: white;
+}
+
+.btn.pause:hover:not(:disabled) {
+    background: #dd6b20;
+    transform: translateY(-2px);
+}
+
+.btn.stop {
+    background: #f56565;
+    color: white;
+}
+
+.btn.stop:hover:not(:disabled) {
+    background: #e53e3e;
+    transform: translateY(-2px);
+}
+
+.progress-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: bold;
+    color: #4a5568;
+}
+
+/* 主内容区域 - 添加顶部边距 */
+.letter-display {
+    margin-top: 180px;
+    padding: 20px 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 400px;
+}
+
+.letter-card {
+    background: white;
+    border-radius: 20px;
+    padding: 40px;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    max-width: 500px;
+    width: 100%;
+    transition: all 0.3s ease;
+}
+
+.letter-card.active {
+    transform: scale(1.05);
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+}
+
+.thai-letter {
+    font-size: 4rem;
+    font-weight: bold;
+    color: #4a5568;
+    margin-bottom: 20px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.pronunciation {
+    font-size: 1.5rem;
+    color: #667eea;
+    margin-bottom: 15px;
+    font-weight: bold;
+}
+
+.meaning {
+    font-size: 1.2rem;
+    color: #718096;
+    line-height: 1.5;
+}
+
+/* 字母列表 */
+.letter-list {
+    padding: 40px 0;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    margin: 20px 0;
+}
+
+.letter-list h2 {
+    text-align: center;
+    color: white;
+    margin-bottom: 30px;
+    font-size: 1.5rem;
+}
+
+.letter-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 15px;
+    padding: 0 20px;
+}
+
+.grid-letter {
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 10px;
+    padding: 15px 10px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+}
+
+.grid-letter:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.grid-letter.current {
+    border-color: #667eea;
+    background: #667eea;
+    color: white;
+    transform: scale(1.1);
+}
+
+.grid-letter .thai {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.grid-letter .pronunciation {
+    font-size: 0.8rem;
+    color: #666;
+    margin-bottom: 3px;
+}
+
+.grid-letter.current .pronunciation {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.grid-letter .meaning {
+    font-size: 0.7rem;
+    color: #888;
+}
+
+.grid-letter.current .meaning {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .control-panel {
+        padding: 10px 15px;
+    }
+    
+    .control-panel h1 {
+        font-size: 1.4rem;
+        margin-bottom: 10px;
+    }
+    
+    .controls {
+        gap: 10px;
+    }
+    
+    .btn {
+        padding: 10px 16px;
+        font-size: 14px;
+        min-width: 70px;
+    }
+    
+    .letter-display {
+        margin-top: 160px;
+        padding: 15px 0;
+        min-height: 300px;
+    }
+    
+    .letter-card {
+        padding: 30px 20px;
+        margin: 0 10px;
+    }
+    
+    .thai-letter {
+        font-size: 3rem;
+        margin-bottom: 15px;
+    }
+    
+    .pronunciation {
+        font-size: 1.2rem;
+        margin-bottom: 10px;
+    }
+    
+    .meaning {
+        font-size: 1rem;
+    }
+    
+    .letter-grid {
+        grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+        gap: 10px;
+        padding: 0 15px;
+    }
+    
+    .grid-letter {
+        padding: 10px 5px;
+    }
+    
+    .grid-letter .thai {
+        font-size: 1.2rem;
+    }
+    
+    .progress-info {
+        font-size: 0.9rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .control-panel h1 {
+        font-size: 1.2rem;
+    }
+    
+    .controls {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    
+    .btn {
+        padding: 8px 12px;
+        font-size: 12px;
+        min-width: 60px;
+    }
+    
+    .letter-display {
+        margin-top: 170px;
+    }
+    
+    .thai-letter {
+        font-size: 2.5rem;
+    }
+    
+    .letter-grid {
+        grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+        gap: 8px;
+    }
+    
+    .progress-info {
+        flex-direction: column;
+        gap: 5px;
+        font-size: 0.8rem;
+    }
+}
+
+/* 动画效果 */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.letter-card {
+    animation: fadeIn 0.5s ease-out;
+}
+
+/* 滚动条样式 */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.5);
+}

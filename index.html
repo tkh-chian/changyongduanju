@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>泰语字母学习</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- 控制面板 - 固定在顶部 -->
+        <div class="control-panel">
+            <h1>泰语字母学习</h1>
+            <div class="controls">
+                <button id="playBtn" class="btn play">播放</button>
+                <button id="pauseBtn" class="btn pause" disabled>暂停</button>
+                <button id="stopBtn" class="btn stop" disabled>停止</button>
+            </div>
+            <div class="progress-info">
+                <span id="currentLetter">准备开始</span>
+                <span id="progressText">0/44</span>
+            </div>
+        </div>
+
+        <!-- 字母显示区域 -->
+        <div class="letter-display">
+            <div id="currentLetterCard" class="letter-card">
+                <div class="thai-letter">点击播放开始学习</div>
+                <div class="pronunciation"></div>
+                <div class="meaning"></div>
+            </div>
+        </div>
+
+        <!-- 字母列表 -->
+        <div class="letter-list">
+            <h2>泰语字母表</h2>
+            <div id="letterGrid" class="letter-grid"></div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
