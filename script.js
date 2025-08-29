@@ -465,32 +465,76 @@ class ThaiPhraseLearning {
     }
     
     enableAudio() {
+        console.log('🎤 启用音频功能');
+        
         // 移动端音频上下文激活
         if (window.AudioContext || window.webkitAudioContext) {
             const AudioContext = window.AudioContext || window.webkitAudioContext;
             const audioContext = new AudioContext();
             if (audioContext.state === 'suspended') {
-                audioContext.resume();
+                audioContext.resume().then(() => {
+                    console.log('✅ 音频上下文已激活');
+                });
             }
         }
         
-        // 移动端语音合成激活
+        // 移动端语音合成激活 - 多次尝试
         this.testSpeech();
         
-        // 强制加载语音列表（移动端需要）
-        setTimeout(() => {
-            this.loadVoices();
-            // 再次尝试加载语音
-            if (this.voices.length === 0) {
-                setTimeout(() => this.loadVoices(), 1000);
-            }
-        }, 500);
+        // 强制加载语音列表
+        this.loadVoices();
+        
+        // 移动端需要多次尝试加载语音
+        const loadAttempts = [500, 1000, 2000, 3000];
+        loadAttempts.forEach(delay => {
+            setTimeout(() => {
+                if (this.voices.length === 0) {
+                    console.log(`🔄 重试加载语音 (${delay}ms)`);
+                    this.loadVoices();
+                }
+            }, delay);
+        });
+        
+        // 移动端特殊处理：强制触发语音合成
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        if (isMobile) {
+            console.log('📱 检测到移动设备，执行特殊初始化');
+            
+            // 创建一个静音的语音来激活引擎
+            setTimeout(() => {
+                const silentUtterance = new SpeechSynthesisUtterance(' ');
+                silentUtterance.volume = 0.01;
+                silentUtterance.rate = 10;
+                silentUtterance.onend = () => {
+                    console.log('✅ 移动端语音引擎已激活');
+                    this.loadVoices();
+                };
+                this.speechSynthesis.speak(silentUtterance);
+            }, 100);
+        }
     }
     
     testSpeech() {
-        const testUtterance = new SpeechSynthesisUtterance('');
-        testUtterance.volume = 0;
-        this.speechSynthesis.speak(testUtterance);
+        console.log('🧪 测试语音功能');
+        try {
+            // 创建测试语音
+            const testUtterance = new SpeechSynthesisUtterance('test');
+            testUtterance.volume = 0.01;
+            testUtterance.rate = 10;
+            testUtterance.pitch = 1;
+            
+            testUtterance.onstart = () => {
+                console.log('✅ 语音测试成功');
+            };
+            
+            testUtterance.onerror = (event) => {
+                console.warn('⚠️ 语音测试失败:', event.error);
+            };
+            
+            this.speechSynthesis.speak(testUtterance);
+        } catch (error) {
+            console.error('❌ 语音测试异常:', error);
+        }
     }
     
     loadVoices() {
@@ -611,57 +655,94 @@ class ThaiPhraseLearning {
     
     async speak(text, voice, lang = 'th-TH') {
         return new Promise((resolve) => {
-            // 移动端兼容性处理
-            if (this.speechSynthesis.speaking) {
-                this.speechSynthesis.cancel();
-            }
+            // 强制停止当前播放
+            this.speechSynthesis.cancel();
             
-            // 增加延迟确保语音引擎准备就绪
+            // 移动端需要更长的延迟
             setTimeout(() => {
                 this.currentUtterance = new SpeechSynthesisUtterance(text);
                 
-                // 移动端语言设置优化
+                // 移动端泰语语音特殊处理
                 if (lang.includes('th')) {
-                    // 泰语设置
-                    this.currentUtterance.lang = 'th-TH';
-                    // 如果没有泰语语音，尝试使用英语语音读泰语
-                    if (!voice || !voice.lang.toLowerCase().includes('th')) {
-                        this.currentUtterance.lang = 'en-US';
+                    // 检测是否为移动设备
+                    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+                    
+                    if (isMobile) {
+                        // 移动端强制使用默认语音，不设置特定语言
+                        this.currentUtterance.lang = '';
+                        this.currentUtterance.voice = null;
+                        console.log('移动端泰语：使用默认语音');
+                    } else {
+                        // 桌面端使用泰语设置
+                        this.currentUtterance.lang = 'th-TH';
+                        if (voice) {
+                            this.currentUtterance.voice = voice;
+                        }
+                        console.log('桌面端泰语：使用泰语语音');
                     }
                 } else {
                     // 中文设置
                     this.currentUtterance.lang = 'zh-CN';
+                    if (voice) {
+                        this.currentUtterance.voice = voice;
+                    }
                 }
                 
-                this.currentUtterance.rate = this.speechRate;
+                // 移动端使用较慢的语速
+                const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+                this.currentUtterance.rate = isMobile ? Math.max(0.7, this.speechRate * 0.8) : this.speechRate;
                 this.currentUtterance.pitch = 1;
                 this.currentUtterance.volume = 1;
                 
-                if (voice) {
-                    this.currentUtterance.voice = voice;
-                }
+                let hasStarted = false;
+                let timeoutId = null;
+                
+                this.currentUtterance.onstart = () => {
+                    hasStarted = true;
+                    if (timeoutId) clearTimeout(timeoutId);
+                    console.log(`✅ 开始播放: ${text}, 语言: ${this.currentUtterance.lang || '默认'}`);
+                };
                 
                 this.currentUtterance.onend = () => {
-                    console.log(`语音播放完成: ${text}`);
+                    if (timeoutId) clearTimeout(timeoutId);
+                    console.log(`✅ 播放完成: ${text}`);
                     resolve();
                 };
                 
                 this.currentUtterance.onerror = (event) => {
-                    console.error('语音播放错误:', event.error, text);
+                    if (timeoutId) clearTimeout(timeoutId);
+                    console.error('❌ 语音播放错误:', event.error, text);
                     resolve();
                 };
                 
-                this.currentUtterance.onstart = () => {
-                    console.log(`开始播放: ${text}, 语言: ${this.currentUtterance.lang}`);
-                };
+                // 设置超时机制，防止卡死
+                timeoutId = setTimeout(() => {
+                    if (!hasStarted) {
+                        console.warn('⚠️ 语音播放超时，强制继续:', text);
+                        this.speechSynthesis.cancel();
+                        resolve();
+                    }
+                }, 5000);
                 
                 try {
+                    console.log(`🎵 准备播放: ${text}`);
                     this.speechSynthesis.speak(this.currentUtterance);
+                    
+                    // 移动端额外的激活尝试
+                    if (isMobile) {
+                        setTimeout(() => {
+                            if (!hasStarted && !this.speechSynthesis.speaking) {
+                                console.log('🔄 移动端重试播放');
+                                this.speechSynthesis.speak(this.currentUtterance);
+                            }
+                        }, 500);
+                    }
                 } catch (error) {
-                    console.error('语音播放异常:', error);
+                    if (timeoutId) clearTimeout(timeoutId);
+                    console.error('❌ 语音播放异常:', error);
                     resolve();
                 }
-            }, 200); // 增加延迟时间
+            }, isMobile ? 500 : 200);
         });
     }
     
@@ -671,9 +752,13 @@ class ThaiPhraseLearning {
         const currentPhrase = this.filteredPhrases[this.currentIndex];
         this.currentPhraseCard.classList.add('active');
         
+        console.log(`🎯 开始播放短语 ${this.currentIndex + 1}: ${currentPhrase.thai} - ${currentPhrase.chinese}`);
+        
         try {
+            // 播放泰语 3 次
             for (let i = 0; i < 3; i++) {
                 if (!this.isPlaying || this.isPaused) return;
+                console.log(`🇹🇭 播放泰语第 ${i + 1} 次: ${currentPhrase.thai}`);
                 await this.speak(currentPhrase.thai, this.thaiVoice, 'th-TH');
                 if (i < 2 && this.isPlaying && !this.isPaused) {
                     await this.delay(500);
@@ -684,8 +769,10 @@ class ThaiPhraseLearning {
                 await this.delay(800);
             }
             
+            // 播放中文 3 次
             for (let i = 0; i < 3; i++) {
                 if (!this.isPlaying || this.isPaused) return;
+                console.log(`🇨🇳 播放中文第 ${i + 1} 次: ${currentPhrase.chinese}`);
                 await this.speak(currentPhrase.chinese, this.chineseVoice, 'zh-CN');
                 if (i < 2 && this.isPlaying && !this.isPaused) {
                     await this.delay(500);
@@ -693,7 +780,7 @@ class ThaiPhraseLearning {
             }
             
         } catch (error) {
-            console.error('播放出错:', error);
+            console.error('❌ 播放出错:', error);
         }
         
         this.currentPhraseCard.classList.remove('active');
@@ -734,6 +821,7 @@ class ThaiPhraseLearning {
     }
     
     play() {
+        console.log('▶️ 开始播放');
         this.isPlaying = true;
         this.isPaused = false;
         
@@ -741,11 +829,32 @@ class ThaiPhraseLearning {
         this.pauseBtn.disabled = false;
         this.stopBtn.disabled = false;
         
+        // 确保语音已加载
         if (this.voices.length === 0) {
+            console.log('🔄 重新加载语音列表');
             this.loadVoices();
         }
         
-        this.playCurrentPhrase();
+        // 移动端额外的语音激活
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        if (isMobile) {
+            console.log('📱 移动端播放准备');
+            // 先播放一个静音测试
+            const testUtterance = new SpeechSynthesisUtterance(' ');
+            testUtterance.volume = 0.01;
+            testUtterance.rate = 10;
+            testUtterance.onend = () => {
+                console.log('✅ 移动端语音引擎准备完成');
+                setTimeout(() => this.playCurrentPhrase(), 100);
+            };
+            testUtterance.onerror = () => {
+                console.warn('⚠️ 移动端语音测试失败，直接开始播放');
+                setTimeout(() => this.playCurrentPhrase(), 100);
+            };
+            this.speechSynthesis.speak(testUtterance);
+        } else {
+            this.playCurrentPhrase();
+        }
     }
     
     pause() {
