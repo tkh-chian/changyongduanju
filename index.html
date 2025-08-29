@@ -568,12 +568,12 @@
         // 生成字母卡片
         function generateLetterCard(letter) {
             return `
-                <div class="letter-card" onclick="pronounce('${letter.thai}')">
+                <div class="letter-card" onclick="pronounce('${letter.thai}', false)">
                     <div class="thai-letter">${letter.thai}</div>
                     <div class="pronunciation">${letter.pronunciation}</div>
                     <div class="english-name">${letter.english}</div>
                     ${letter.meaning ? `<div class="english-name">${letter.meaning}</div>` : ''}
-                    <button class="audio-btn" onclick="pronounce('${letter.thai}')">🔊 发音</button>
+                    <button class="audio-btn" onclick="pronounce('${letter.thai}', false)">🔊 发音</button>
                 </div>
             `;
         }
@@ -609,10 +609,32 @@
             });
             
             // 在页面上添加全局点击事件处理音频初始化
-            document.addEventListener('click', function initAudioOnClick() {
+            function handleFirstInteraction() {
                 initAudio();
-                document.removeEventListener('click', initAudioOnClick);
-            });
+                forceUnlockAudio();
+                
+                // 确保音频上下文已激活
+                if (audioContext && audioContext.state === 'suspended') {
+                    audioContext.resume();
+                }
+                
+                // 尝试播放一个测试声音
+                if ('speechSynthesis' in window) {
+                    try {
+                        const testUtterance = new SpeechSynthesisUtterance(' '); // 空格字符
+                        testUtterance.volume = 0;
+                        testUtterance.rate = 0.1;
+                        speechSynthesis.speak(testUtterance);
+                    } catch (e) {
+                        console.log('测试声音播放失败:', e);
+                    }
+                }
+            }
+            
+            // 添加多种事件监听器确保能捕获用户首次交互
+            document.addEventListener('click', handleFirstInteraction, { once: true });
+            document.addEventListener('touchstart', handleFirstInteraction, { once: true });
+            document.addEventListener('keydown', handleFirstInteraction, { once: true });
         });
 
         // 初始化音频环境（解决移动端问题）
@@ -623,7 +645,7 @@
             // 创建音频上下文
             if (!audioContext && window.AudioContext) {
                 try {
-                    audioContext = new AudioContext();
+                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
                     
                     // 创建一个静音的音频源，用于解锁移动端音频
                     const silentBuffer = audioContext.createBuffer(1, 1, 22050);
@@ -631,6 +653,11 @@
                     source.buffer = silentBuffer;
                     source.connect(audioContext.destination);
                     source.start(0);
+                    
+                    // 立即尝试恢复音频上下文
+                    if (audioContext.state === 'suspended') {
+                        audioContext.resume();
+                    }
                 } catch (e) {
                     console.log('初始化音频上下文失败:', e);
                 }
@@ -689,6 +716,11 @@
                             }, 800 / playSpeed);
                         }
                         return;
+                    }
+                    
+                    // 在移动端，确保音频上下文已解锁
+                    if (isMobile && audioContext && audioContext.state === 'suspended') {
+                        audioContext.resume();
                     }
                     
                     // 手动点击或电脑自动播放
@@ -984,6 +1016,11 @@
             audioInitialized = false;
             initAudio();
             
+            // 确保音频上下文已激活
+            if (audioContext && audioContext.state === 'suspended') {
+                audioContext.resume();
+            }
+            
             // 尝试播放一段简短声音
             playTestSound();
             
@@ -995,6 +1032,11 @@
             
             // 显示测试区域
             document.getElementById('audioTest').style.display = 'block';
+            
+            // 在移动端显示成功提示
+            if (isMobile) {
+                document.getElementById('mobileTip').innerHTML += '<p style="color: green; margin-top: 10px;">音频解锁尝试已完成！如果仍无法听到声音，请点击页面任意位置再次尝试。</p>';
+            }
         }
 
         // 测试移动端音频
@@ -1020,11 +1062,16 @@
         function playTestSound() {
             // 使用多种方法尝试播放声音
             
+            // 确保音频上下文已激活
+            if (audioContext && audioContext.state === 'suspended') {
+                audioContext.resume();
+            }
+            
             // 1. 尝试使用标准HTML5 Audio
             try {
                 const audio = new Audio();
-                audio.src = 'data:audio/mp3;base64,/+MYxAAAAANIAAAAAExBTUUzLjk4LjIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA';
-                audio.volume = 1.0;
+                audio.src = 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFd2xqZ2VjXl1bWVhXVlVUU1JRUFFRUVBQz8/Q0M/P0NDR0dDS0tLT0tHR0tLT09PU1NTU1dXV1tbW19fX2NjY2dnZ2tra29vb3Nzc3d3d3t7f39/g4ODh4eHi4uLj4+Pk5OTl5eXm5ufn5+jo6Onp6erq6+vs7Ozt7e3u7u/v8PDx8fHy8vPz9PT19fb29/f4+Pn5+vr7+/z8/f3+/v//AAAAAAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8gISIjJCUmJygpKissLS4vMDEyMzQ1Njc4OTo7PD0+P0BBQkNERUZHSElKS0xNTk9QUVJTVFVWV1hZWltcXV5fYGFiY2RlZmdoaWprbG1ub3BxcnN0dXZ3eHl6e3x9fn+AgYKDhIWGh4iJiouMjY6PkJGSk5SVlpeYmZqbnJ2en6ChoqOkpaanqKmqq6ytrq+wsbKztLW2t7i5uru8vb6/wMHCw8TFxsfIycrLzM3Oz9DR0tPU1dbX2Nna29zd3t/g4eLj5OXm5+jp6uvs7e7v8PHy8/T19vf4+fr7/P3+/wABAgMEBQYHCAkKCwwNDg8QERITFBUWFxgZGhscHR4fICEiIyQlJicoKSorLC0uLzAxMjM0NTY3ODk6Ozw9Pj9AQUJDREVGR0hJSktMTU5PUFFSU1RVVldYWVpbXF1eX2BhYmNkZWZnaGlqa2xtbm9wcXJzdHV2d3h5ent8fX5/gIGCg4SFhoeIiYqLjI2Oj5CRkpOUlZaXmJmam5ydnp+goaKjpKWmp6ipqqusra6vsLGys7S1tre4ubq7vL2+v8DBwsPExcbHyMnKy8zNzs/Q0dLT1NXW19jZ2tvc3d7f4OHi4+Tl5ufo6err7O3u7/Dx8vP09fb3+Pn6+/z9/v8AAQIDBAUGBwgJCgsMDQ4PEBESExQVFhcYGRobHB0eHyAhIiMkJSYnKCkqKywtLi8wMTIzNDU2Nzg5Ojs8PT4/QEFCQ0RFRkdISUpLTE1OT1BRUlNUVVZXWFlaW1xdXl9gYWJjZGVmZ2hpamtsbW5vcHFyc3R1dnd4eXp7fH1+f4CBgoOEhYaHiImKi4yNjo+QkZKTlJWWl5iZmpucnZ6foKGio6SlpqeoqaqrrK2ur7CxsrO0tba3uLm6u7y9vr/AwcLDxMXGx8jJysvMzc7P0NHS09TV1tfY2drb3N3e3+Dh4uPk5ebn6Onq6+zt7u/w8fLz9PX29/j5+vv8/f7/';
+                audio.volume = 0.5;
                 audio.play().then(() => {
                     console.log('标准音频播放成功');
                     mobileAudioUnlocked = true;
