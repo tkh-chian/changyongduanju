@@ -56,6 +56,7 @@
         <div class="test-section">
             <h3>1. 显示所有可用语音</h3>
             <button onclick="listVoices()">列出所有语音</button>
+            <button onclick="forceLoadVoices()">强制刷新语音</button>
             <div id="voiceList"></div>
         </div>
         
@@ -90,18 +91,74 @@
         function loadVoices() {
             voices = speechSynthesis.getVoices();
             console.log('加载了', voices.length, '个语音');
+            
+            // 如果没有语音，继续等待
+            if (voices.length === 0) {
+                console.log('语音列表为空，继续等待...');
+                setTimeout(loadVoices, 500);
+            }
         }
         
         // 页面加载时和语音变化时加载语音
         loadVoices();
         speechSynthesis.onvoiceschanged = loadVoices;
         
+        // Android设备额外的语音加载尝试
+        if (/Android/i.test(navigator.userAgent)) {
+            console.log('检测到Android设备，执行额外的语音加载');
+            
+            // 多次尝试加载语音
+            const loadAttempts = [1000, 2000, 3000, 5000];
+            loadAttempts.forEach(delay => {
+                setTimeout(() => {
+                    if (voices.length === 0) {
+                        console.log(`第${delay}ms次尝试加载语音`);
+                        loadVoices();
+                    }
+                }, delay);
+            });
+            
+            // 尝试触发语音加载
+            setTimeout(() => {
+                const utterance = new SpeechSynthesisUtterance('');
+                utterance.volume = 0;
+                speechSynthesis.speak(utterance);
+                setTimeout(loadVoices, 100);
+            }, 100);
+        }
+        
+        function forceLoadVoices() {
+            console.log('强制加载语音...');
+            
+            // 创建一个测试语音来触发语音引擎
+            const utterance = new SpeechSynthesisUtterance('test');
+            utterance.volume = 0.01;
+            utterance.rate = 10;
+            
+            utterance.onstart = () => {
+                console.log('语音引擎已激活');
+                setTimeout(() => {
+                    loadVoices();
+                    listVoices();
+                }, 500);
+            };
+            
+            utterance.onerror = () => {
+                console.log('语音激活失败，继续尝试');
+                setTimeout(() => {
+                    loadVoices();
+                    listVoices();
+                }, 500);
+            };
+            
+            speechSynthesis.speak(utterance);
+        }
+        
         function listVoices() {
             loadVoices();
             const voiceList = document.getElementById('voiceList');
             if (voices.length === 0) {
-                voiceList.innerHTML = '没有找到可用语音，请稍后再试...';
-                setTimeout(listVoices, 1000);
+                voiceList.innerHTML = '没有找到可用语音，请点击"强制刷新语音"按钮或稍后再试...';
                 return;
             }
             
