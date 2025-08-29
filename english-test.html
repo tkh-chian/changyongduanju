@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>多语言语音测试</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 30px;
+        }
+
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(52, 152, 219, 0.1);
+            border-radius: 10px;
+            border-left: 4px solid #3498db;
+        }
+
+        .test-section h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+
+        .test-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .test-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: white;
+            min-width: 120px;
+        }
+
+        .chinese-btn { background: linear-gradient(45deg, #e74c3c, #c0392b); }
+        .english-btn { background: linear-gradient(45deg, #3498db, #2980b9); }
+        .thai-btn { background: linear-gradient(45deg, #f39c12, #e67e22); }
+        .japanese-btn { background: linear-gradient(45deg, #9b59b6, #8e44ad); }
+        .korean-btn { background: linear-gradient(45deg, #1abc9c, #16a085); }
+
+        .test-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .debug-info {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            font-family: monospace;
+            font-size: 12px;
+            color: #333;
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+        }
+
+        .voice-list {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            font-family: monospace;
+            font-size: 11px;
+            color: #333;
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+        }
+
+        .notice {
+            background: rgba(46, 204, 113, 0.9);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            
+            .test-buttons {
+                flex-direction: column;
+            }
+            
+            .test-btn {
+                min-width: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌍 多语言语音测试</h1>
+        
+        <div class="notice">
+            🔬 这个测试将帮助我们确定问题是否特定于泰语，还是影响所有非中文语言。
+        </div>
+
+        <div class="test-section">
+            <h3>📋 第一步：列出所有可用语音</h3>
+            <div class="test-buttons">
+                <button class="test-btn chinese-btn" onclick="listAllVoices()">📝 列出所有语音</button>
+                <button class="test-btn english-btn" onclick="clearLogs()">🗑️ 清空日志</button>
+            </div>
+            <div class="voice-list" id="voiceList">点击"列出所有语音"查看您设备支持的语音...</div>
+        </div>
+
+        <div class="test-section">
+            <h3>🎵 第二步：测试不同语言</h3>
+            <div class="test-buttons">
+                <button class="test-btn chinese-btn" onclick="testLanguage('zh', '你好，这是中文测试')">🇨🇳 中文测试</button>
+                <button class="test-btn english-btn" onclick="testLanguage('en', 'Hello, this is English test')">🇺🇸 英语测试</button>
+                <button class="test-btn thai-btn" onclick="testLanguage('th', 'สวัสดี')">🇹🇭 泰语测试</button>
+                <button class="test-btn japanese-btn" onclick="testLanguage('ja', 'こんにちは')">🇯🇵 日语测试</button>
+                <button class="test-btn korean-btn" onclick="testLanguage('ko', '안녕하세요')">🇰🇷 韩语测试</button>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h3>🔧 第三步：强制指定语音测试</h3>
+            <div class="test-buttons">
+                <button class="test-btn english-btn" onclick="testWithSpecificVoice('en', 'Hello World')">🎯 强制英语语音</button>
+                <button class="test-btn thai-btn" onclick="testWithSpecificVoice('th', 'สวัสดี')">🎯 强制泰语语音</button>
+                <button class="test-btn chinese-btn" onclick="testWithDefaultVoice('สวัสดี')">🔧 默认语音读泰语</button>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h3>📊 调试信息</h3>
+            <div class="debug-info" id="debugInfo">等待测试...</div>
+        </div>
+    </div>
+
+    <script>
+        let debugLog = [];
+        let allVoices = [];
+
+        // 调试日志
+        function addLog(message) {
+            const timestamp = new Date().toLocaleTimeString();
+            debugLog.push(`[${timestamp}] ${message}`);
+            updateDebugDisplay();
+        }
+
+        function updateDebugDisplay() {
+            const debugInfo = document.getElementById('debugInfo');
+            debugInfo.innerHTML = debugLog.slice(-15).join('<br>');
+        }
+
+        function clearLogs() {
+            debugLog = [];
+            updateDebugDisplay();
+            addLog('🗑️ 日志已清空');
+        }
+
+        // 列出所有语音
+        function listAllVoices() {
+            addLog('📋 开始列出所有语音...');
+            
+            function loadVoices() {
+                allVoices = speechSynthesis.getVoices();
+                addLog(`找到 ${allVoices.length} 个语音`);
+                
+                if (allVoices.length === 0) {
+                    addLog('⚠️ 语音列表为空，等待加载...');
+                    setTimeout(loadVoices, 500);
+                    return;
+                }
+                
+                displayVoices();
+            }
+            
+            loadVoices();
+            speechSynthesis.onvoiceschanged = loadVoices;
+        }
+
+        function displayVoices() {
+            const voiceList = document.getElementById('voiceList');
+            let html = `<strong>找到 ${allVoices.length} 个语音：</strong><br><br>`;
+            
+            // 按语言分组
+            const languageGroups = {};
+            allVoices.forEach((voice, index) => {
+                const lang = voice.lang.substring(0, 2);
+                if (!languageGroups[lang]) {
+                    languageGroups[lang] = [];
+                }
+                languageGroups[lang].push({voice, index});
+            });
+            
+            // 显示分组结果
+            Object.keys(languageGroups).sort().forEach(lang => {
+                const langName = {
+                    'zh': '🇨🇳 中文',
+                    'en': '🇺🇸 英语', 
+                    'th': '🇹🇭 泰语',
+                    'ja': '🇯🇵 日语',
+                    'ko': '🇰🇷 韩语'
+                }[lang] || `🌍 ${lang.toUpperCase()}`;
+                
+                html += `<strong>${langName}:</strong><br>`;
+                languageGroups[lang].forEach(({voice, index}) => {
+                    html += `&nbsp;&nbsp;${index + 1}. ${voice.name} (${voice.lang}) - ${voice.localService ? '本地' : '远程'}<br>`;
+                });
+                html += '<br>';
+            });
+            
+            voiceList.innerHTML = html;
+            
+            // 记录关键语音
+            const thaiVoices = allVoices.filter(v => v.lang.toLowerCase().includes('th'));
+            const englishVoices = allVoices.filter(v => v.lang.toLowerCase().includes('en'));
+            
+            addLog(`🇹🇭 泰语语音数量: ${thaiVoices.length}`);
+            addLog(`🇺🇸 英语语音数量: ${englishVoices.length}`);
+            
+            if (thaiVoices.length > 0) {
+                addLog(`✅ 泰语语音: ${thaiVoices[0].name}`);
+            } else {
+                addLog('❌ 未找到泰语语音');
+            }
+        }
+
+        // 测试指定语言
+        function testLanguage(lang, text) {
+            addLog(`🎵 测试 ${lang.toUpperCase()}: ${text}`);
+            
+            const utterance = new SpeechSynthesisUtterance(text);
+            
+            // 设置语言
+            const langMap = {
+                'zh': 'zh-CN',
+                'en': 'en-US', 
+                'th': 'th-TH',
+                'ja': 'ja-JP',
+                'ko': 'ko-KR'
+            };
+            utterance.lang = langMap[lang] || lang;
+            
+            // 基本设置
+            utterance.rate = 0.8;
+            utterance.pitch = 1;
+            utterance.volume = 1;
+            
+            utterance.onstart = () => {
+                addLog(`▶️ 开始播放 ${lang.toUpperCase()}: ${text}`);
+            };
+            
+            utterance.onend = () => {
+                addLog(`✅ 播放完成 ${lang.toUpperCase()}: ${text}`);
+            };
+            
+            utterance.onerror = (e) => {
+                addLog(`❌ 播放失败 ${lang.toUpperCase()}: ${text} - ${e.error}`);
+            };
+            
+            try {
+                speechSynthesis.speak(utterance);
+            } catch (error) {
+                addLog(`❌ 播放异常 ${lang.toUpperCase()}: ${error.message}`);
+            }
+        }
+
+        // 强制指定语音测试
+        function testWithSpecificVoice(lang, text) {
+            addLog(`🎯 强制指定 ${lang.toUpperCase()} 语音测试: ${text}`);
+            
+            const utterance = new SpeechSynthesisUtterance(text);
+            
+            // 查找对应语言的语音
+            const targetVoices = allVoices.filter(v => v.lang.toLowerCase().includes(lang));
+            
+            if (targetVoices.length > 0) {
+                utterance.voice = targetVoices[0];
+                addLog(`🎯 使用语音: ${targetVoices[0].name} (${targetVoices[0].lang})`);
+            } else {
+                addLog(`⚠️ 未找到 ${lang.toUpperCase()} 语音，使用默认`);
+            }
+            
+            utterance.lang = lang === 'en' ? 'en-US' : 'th-TH';
+            utterance.rate = 0.8;
+            utterance.pitch = 1;
+            utterance.volume = 1;
+            
+            utterance.onstart = () => {
+                addLog(`▶️ 强制语音开始播放: ${text}`);
+            };
+            
+            utterance.onend = () => {
+                addLog(`✅ 强制语音播放完成: ${text}`);
+            };
+            
+            utterance.onerror = (e) => {
+                addLog(`❌ 强制语音播放失败: ${text} - ${e.error}`);
+            };
+            
+            try {
+                speechSynthesis.speak(utterance);
+            } catch (error) {
+                addLog(`❌ 强制语音播放异常: ${error.message}`);
+            }
+        }
+
+        // 默认语音读泰语
+        function testWithDefaultVoice(text) {
+            addLog(`🔧 使用默认语音读泰语: ${text}`);
+            
+            const utterance = new SpeechSynthesisUtterance(text);
+            // 不设置任何语音和语言，完全使用默认
+            
+            utterance.rate = 0.8;
+            utterance.pitch = 1;
+            utterance.volume = 1;
+            
+            utterance.onstart = () => {
+                addLog(`▶️ 默认语音开始播放: ${text}`);
+            };
+            
+            utterance.onend = () => {
+                addLog(`✅ 默认语音播放完成: ${text}`);
+            };
+            
+            utterance.onerror = (e) => {
+                addLog(`❌ 默认语音播放失败: ${text} - ${e.error}`);
+            };
+            
+            try {
+                speechSynthesis.speak(utterance);
+            } catch (error) {
+                addLog(`❌ 默认语音播放异常: ${error.message}`);
+            }
+        }
+
+        // 页面加载时初始化
+        window.onload = function() {
+            addLog('🌍 多语言语音测试系统已启动');
+            addLog('👆 请先点击"列出所有语音"查看设备支持');
+        };
+    </script>
+</body>
+</html>
