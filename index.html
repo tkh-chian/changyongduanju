@@ -680,7 +680,7 @@
                     speechSynthesis.cancel();
                     
                     // 如果是移动端自动播放模式，跳过发声
-                    if (isMobile && autoNext) {
+                    if (isMobile && autoNext && isPlaying) {
                         // 更新状态，但不播放声音
                         updatePlayStatus(`正在学习: ${letter}`);
                         if (isPlaying) {
@@ -1108,3 +1108,5 @@
     </script>
 </body>
 </html>
+
+
